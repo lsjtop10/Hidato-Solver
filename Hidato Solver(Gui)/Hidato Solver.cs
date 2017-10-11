@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Hidato_Solver_Gui_;
+using System.Threading;
 
 namespace hidato_solver
 {
@@ -141,6 +142,8 @@ namespace hidato_solver
             public Node W;
             public Node NW;
 
+            public bool[] insertMarking = new bool[8];
+
             public Node()
             {
                 this.NE = null;
@@ -150,6 +153,12 @@ namespace hidato_solver
                 this.SE = null;
                 this.W = null;
                 this.NW = null;
+
+                for (int i = 0; i < insertMarking.Length; i++)
+                {
+                    insertMarking[i] = false;
+                }
+
             }
 
         }
@@ -284,6 +293,50 @@ namespace hidato_solver
 
     }
 
+    public class WhereInsertNow
+    {
+        private int minval;
+        private int maxval;
+
+        private int m_current = 0;
+
+        public WhereInsertNow(int minval, int maxval, int InitialVal)
+        {
+            this.minval = minval;
+            this.maxval = maxval;
+            m_current = InitialVal;
+        }
+
+        public int current
+        {
+            set
+            {
+                if (!(value < maxval))
+                {
+                    m_current = value;
+                }
+            }
+
+            get { return m_current; }
+        }
+
+        //1식 증가하다가 처음으로 돌아옵니다.
+        public int increase()
+        {
+            if (m_current >= maxval)
+            {
+                m_current = minval;
+            }
+            else
+            {
+                m_current++;
+            }
+
+            return m_current;
+        }
+
+    }
+
     class HidatoSolver
     {
         private int hidatoCount = 1;
@@ -303,8 +356,27 @@ namespace hidato_solver
         private Stack<HidatoGrid.Node> HintStack = new Stack<HidatoGrid.Node>(); //현재까지 찾은 힌트들의 스택
         private bool NextNodeHasUpdated = true;
         private DateTime DTNextUpdate;
-        private int NextUpdateSoconds;
         private Hidato_Board RefBoard;
+        private bool SolveCancel = false;
+        private WhereInsertNow insertNow = new WhereInsertNow((int)side.N, (int)side.NW, (int)side.N);
+
+        /// <summary>
+        /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
+        /// false면 정해진 시간마다 업데이트 하고, true면 solve함수에서 변경된 내용을 바로 반영합니다.
+        /// </summary>
+        ///  static public bool ShowAllProssace = false;
+
+        static public bool ShowAllProcess = false;
+
+        /// <summary>
+        /// 몆초 간격으로 업데이트 하는지 지정하는 속성입니다.
+        /// </summary>
+        static public int NextUpdateSoconds = 5;
+
+        /// <summary>
+        /// 푸는 중에 일시 얼마나 길게 일시 정지할지 확인합니다 단위는 ms입니다.
+        /// </summary>
+        static public int ProcessWaitTime = 0;
 
         public int GridRlength
         {
@@ -324,6 +396,7 @@ namespace hidato_solver
             m_Clength = CLength;
         }
 
+        #region 풀이에 필요한 각종 함수입니다.
         private HidatoGrid.Node FindFirstNode()
         {
             for (int i = 0; i < GridClength; i++)
@@ -371,8 +444,8 @@ namespace hidato_solver
 
                 }
             }
-                return nextnode;
-           
+            return nextnode;
+
         }
 
         private int FindMaxVal()
@@ -596,11 +669,11 @@ namespace hidato_solver
         private int HintCount()
         {
             int HintCount = 0;
-            for(int i = 0; i < GridClength; i++)
+            for (int i = 0; i < GridClength; i++)
             {
-                for(int j = 0; j < GridRlength; j++)
+                for (int j = 0; j < GridRlength; j++)
                 {
-                    if(GetDataAt(i,j) > 0)
+                    if (GetDataAt(i, j) > 0)
                     {
                         HintCount++;
                     }
@@ -609,27 +682,38 @@ namespace hidato_solver
 
             return HintCount;
         }
+        #endregion
 
-
-        //몆번이 한번 꼴로 HowManyExitStack변수의 값을 올릴 것 인지 설정하는 상수
-        private const int HowOftenChange = 30;
+        //몆번에 한번 꼴로 HowManyExitStack변수의 값을 올릴 것 인지 설정하는 상수
+        private const int HowOftenChange = 50;
         private bool solve()
-            ///디버그 하기 쉽게 출력을 시켜
         {
+
+            //디버그와 릴리즈를 구분하나?
 #if DEBUG
-            //show();
-
-
-            int DataOfCurrentNode = current.data;
+            int CurrentData = current.data;
 #endif
-            PrevNode = HintStack.Peek();
 
-            if (DateTime.Now > DTNextUpdate)
+
+            if (SolveCancel)
+            {
+                return true;
+            }
+
+            if (ShowAllProcess == true)
+            {
+                RefBoard.UpdateTextBoxes();
+                DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                Thread.Sleep(ProcessWaitTime);
+            }
+            else if (DateTime.Now > DTNextUpdate)
             {
                 RefBoard.UpdateTextBoxes();
                 DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
             }
 
+
+            PrevNode = HintStack.Peek();
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
             ///HintStack의 맨 위에 있는 노드의 데이타가 다음 노드의 데이타와 같지 않으면
@@ -682,10 +766,9 @@ namespace hidato_solver
                         InsertCount = 0;
                     }
 
-                    StackCount = 1;
-
                     if (current.data != 1)
                     {
+                        StackCount = 1;
                         if (PrevNode.data > current.data)
                         {
                             HintStack.Pop();
@@ -750,10 +833,10 @@ namespace hidato_solver
                     InsertCount = 0;
                 }
 
-                StackCount = 1;
-
                 if (current.data != 1)
                 {
+                    StackCount = 1;
+
                     if (PrevNode.data > current.data)
                     {
                         HintStack.Pop();
@@ -777,7 +860,6 @@ namespace hidato_solver
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                     hidatoCount = current.data;
 
-
                     if (HowManyExitStack == 1)
                     {
                         NextNode = FindNextNode(current);
@@ -793,7 +875,7 @@ namespace hidato_solver
                     return false;
                 }
             }
-        
+
             if ((current != NextNode) && (current.data == NextNode.data))
             {
                 if (InsertCount < HowOftenChange)
@@ -811,8 +893,6 @@ namespace hidato_solver
                     InsertCount = 0;
                 }
 
-                StackCount = 1;
-
                 if (current.data != 1)
                 {
                     if (PrevNode.data > current.data)
@@ -820,6 +900,8 @@ namespace hidato_solver
                         HintStack.Pop();
                         PrevNode = HintStack.Peek();
                     }
+
+                    StackCount = 1;
 
                     current.data = 0;
                     current = history.GetPrevElement().node;
@@ -846,6 +928,7 @@ namespace hidato_solver
 
             if (marker.sizeOfnumSet() == 0)
             {
+
                 if (InsertCount < HowOftenChange)
                 {
                     InsertCount++;
@@ -861,10 +944,10 @@ namespace hidato_solver
                     InsertCount = 0;
                 }
 
-                StackCount = 1;
-
                 if (current.data != 1)
                 {
+                    StackCount = 1;
+
                     //PrevNode변수는 HintStack에 가장 윗 부분이다.HintStack의 가장 윗부분은 NextNode임으로(다음 노드임으로) 
                     if (PrevNode.data > current.data)
                     {
@@ -891,7 +974,7 @@ namespace hidato_solver
                     hidatoCount = current.data;
 
                     //빠져나가야 하는 스택 깊이가 1이면
-                    if(HowManyExitStack == 1)
+                    if (HowManyExitStack == 1)
                     {
                         //바로 NextNode를 업데이트 하고
                         NextNode = FindNextNode(current);
@@ -935,6 +1018,7 @@ namespace hidato_solver
 
                     hidatoCount = current.data;
 
+                    return false;
                 }
 
 
@@ -944,96 +1028,111 @@ namespace hidato_solver
                     NextNodeHasUpdated = true;
                 }
 
-                if (marker.SurchMarker[(int)side.N] == true)
-                {
-                    //현재노드를 북쪽으로 설정한 다음
-                    current = current.N;
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    history.AddNode(current);
-                    //이미 탐색한 자리임으로 false마킹
-                    marker.SurchMarker[(int)side.N] = false;
+                bool InsertSuccess = false;
 
-                }
-                else if (marker.SurchMarker[(int)side.NE] == true)
+                for (int j = 0; j < 8; j++)
                 {
-                    current = current.NE;
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    history.AddNode(current);
-                    marker.SurchMarker[(int)side.NE] = false;
-                }
-                else if (marker.SurchMarker[(int)side.E] == true)
-                {
-                    current = current.E;
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    history.AddNode(current);
-                    marker.SurchMarker[(int)side.E] = false;
-                }
-                else if (marker.SurchMarker[(int)side.SE] == true)
-                {
-                    current = current.SE;
-                    history.AddNode(current);
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    marker.SurchMarker[(int)side.SE] = false;
-
-                }
-                else if (marker.SurchMarker[(int)side.S] == true)
-                {
-                    current = current.S;
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    history.AddNode(current);
-                    marker.SurchMarker[(int)side.S] = false;
-
-                }
-                else if (marker.SurchMarker[(int)side.SW] == true)
-                {
-                    current = current.SW;
-                    history.AddNode(current);
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    marker.SurchMarker[(int)side.SW] = false;
-                }
-                else if (marker.SurchMarker[(int)side.W] == true)
-                {
-                    //HowManyTry++;
-                    current = current.W;
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    history.AddNode(current);
-                    marker.SurchMarker[(int)side.W] = false;
-                }
-                else if (marker.SurchMarker[(int)side.NW] == true)
-                {
-                    //HowManyTry++;
-                    current = current.NW;
-                    hidatoCount++;
-                    current.data = hidatoCount;
-                    history.AddNode(current);
-                    marker.SurchMarker[(int)side.NW] = false;
-                }
-                else
-                {
-                    if (InsertCount < HowOftenChange)
+                    if (marker.SurchMarker[insertNow.current] == true)
                     {
-                        InsertCount++;
-                    }
-                    else if (HowManyExitStack >= PossibleHowManyExitStack)
-                    {
-                        InsertCount = 0;
-                        HowManyExitStack = 1;
-                    }
-                    else
-                    {
-                        HowManyExitStack++;
-                        InsertCount = 0;
+                        #region current참조를 알맞은 위치로 옮기는 코드블럭 입니다.
+                        if (insertNow.current == (int)side.N)
+                        {
+                            current = current.N;
+                            current.insertMarking[(int)side.N] = true;
+                        }
+                        else if (insertNow.current == (int)side.NE)
+                        {
+                            current = current.NE;
+                            current.insertMarking[(int)side.NE] = true;
+                        }
+                        else if (insertNow.current == (int)side.E)
+                        {
+                            current = current.E;
+                            current.insertMarking[(int)side.E] = true;
+                        }
+                        else if (insertNow.current == (int)side.SE)
+                        {
+                            current = current.SE;
+                            current.insertMarking[(int)side.SE] = true;
+                        }
+                        else if (insertNow.current == (int)side.S)
+                        {
+                            current = current.S;
+                            current.insertMarking[(int)side.S] = true;
+                        }
+                        else if (insertNow.current == (int)side.SW)
+                        {
+                            current = current.SW;
+                            current.insertMarking[(int)side.SW] = true;
+                        }
+                        else if (insertNow.current == (int)side.W)
+                        {
+                            current = current.W;
+                            current.insertMarking[(int)side.W] = true;
+                        }
+                        else if (insertNow.current == (int)side.NW)
+                        {
+                            current = current.NW;
+                            current.insertMarking[(int)side.NW] = true;
+                        }
+                        else
+                        {
+                            InsertSuccess = false;
+
+                            break;
+                        }
+                        #endregion
+
+                        hidatoCount++;
+                        current.data = hidatoCount;
+                        history.AddNode(current);
+                        //이미 탐색한 자리임으로 false마킹
+                        #region 이미 탐색한 자리는 false로 마킹합니다. 
+                        if (insertNow.current == (int)side.N)
+                        {
+                            marker.SurchMarker[(int)side.N] = false;
+                        }
+                        else if (insertNow.current == (int)side.NE)
+                        {
+                            marker.SurchMarker[(int)side.NE] = false;
+                        }
+                        else if (insertNow.current == (int)side.E)
+                        {
+                            marker.SurchMarker[(int)side.E] = false;
+                        }
+                        else if (insertNow.current == (int)side.SE)
+                        {
+                            marker.SurchMarker[(int)side.SE] = false;
+                        }
+                        else if (insertNow.current == (int)side.S)
+                        {
+                            marker.SurchMarker[(int)side.S] = false;
+                        }
+                        else if (insertNow.current == (int)side.SW)
+                        {
+                            marker.SurchMarker[(int)side.SW] = false;
+                        }
+                        else if (insertNow.current == (int)side.W)
+                        {
+                            marker.SurchMarker[(int)side.W] = false;
+                        }
+                        else if (insertNow.current == (int)side.NW)
+                        {
+                            marker.SurchMarker[(int)side.NW] = false;
+                        }
+                        #endregion
+
+
+                        InsertSuccess = true;
+
+                        break;
                     }
 
-                    StackCount = 1;
+                    insertNow.increase();
+                }
 
+                if (!InsertSuccess)
+                {
                     if (current.data != 1)
                     {
                         if (PrevNode.data > current.data)
@@ -1058,15 +1157,7 @@ namespace hidato_solver
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                         hidatoCount = current.data;
 
-                        if (HowManyExitStack == 1)
-                        {
-                            NextNode = FindNextNode(current);
-                            NextNodeHasUpdated = true;
-                        }
-                        else
-                        {
-                            NextNodeHasUpdated = false;
-                        }
+                        NextNode = FindNextNode(current);
 
                         return false;
                     }
@@ -1077,7 +1168,6 @@ namespace hidato_solver
 
                 }
 
-                //if(solve())와 같은 표현
                 if (solve() == true)
                 {
                     return true;
@@ -1088,8 +1178,10 @@ namespace hidato_solver
             return false;
         }
 
-        public bool startsolve(Hidato_Board board, int seconds)
+        public void startsolve(Hidato_Board board)
         {
+
+            DateTime dtstart = DateTime.Now;
             current = FirstNode = FindFirstNode();
             HintStack.Push(FirstNode);
             maxval = FindMaxVal();
@@ -1098,28 +1190,34 @@ namespace hidato_solver
             NextNode = FindNextNode(current);
             HintStack.Push(NextNode);
 
-            if(HintCount() <= maxval / 10 )
-            {
-                PossibleHowManyExitStack = 3;
-            }
-            else
-            {
-                PossibleHowManyExitStack = 1;
-            }
-
             RefBoard = board;
-            NextUpdateSoconds = seconds;
             DTNextUpdate = DTNextUpdate.AddSeconds(NextUpdateSoconds);
 
-            if (solve())
+            PossibleHowManyExitStack = 1;
+
+            bool success = solve();
+
+            if (success && !SolveCancel)
             {
-                return true;
+                RefBoard.ShowSFdialog(true, dtstart);
+                return;
+            }
+            else if (success && SolveCancel)
+            {
+                return;
             }
             else
             {
-                return false;
-
+                RefBoard.ShowSFdialog(false, dtstart);
+                return;
             }
+
+
+        }
+
+        public void cancel()
+        {
+            SolveCancel = true;
         }
 
         public void show()
