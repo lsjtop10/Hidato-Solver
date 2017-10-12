@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Hidato_Solver_Gui_;
 using System.Threading;
 
+
 namespace hidato_solver
 {
 
@@ -351,7 +352,6 @@ namespace hidato_solver
         private int StackCount = 1;
         private int HowManyExitStack = 1;
         private int InsertCount = 0;
-        private int PossibleHowManyExitStack;
         private HidatoGrid.Node PrevNode;
         private Stack<HidatoGrid.Node> HintStack = new Stack<HidatoGrid.Node>(); //현재까지 찾은 힌트들의 스택
         private bool NextNodeHasUpdated = true;
@@ -359,13 +359,13 @@ namespace hidato_solver
         private Hidato_Board RefBoard;
         private bool SolveCancel = false;
         private WhereInsertNow insertNow = new WhereInsertNow((int)side.N, (int)side.NW, (int)side.N);
+        private bool VariableBackTracking; //가변 백트랙킹 기능을 사용하는지 여부를 bool현 변수로 저장합니다.
 
         /// <summary>
         /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
         /// false면 정해진 시간마다 업데이트 하고, true면 solve함수에서 변경된 내용을 바로 반영합니다.
         /// </summary>
         ///  static public bool ShowAllProssace = false;
-
         static public bool ShowAllProcess = false;
 
         /// <summary>
@@ -377,6 +377,11 @@ namespace hidato_solver
         /// 푸는 중에 일시 얼마나 길게 일시 정지할지 확인합니다 단위는 ms입니다.
         /// </summary>
         static public int ProcessWaitTime = 0;
+
+        /// <summary>
+        /// 진행률에 따라 가변적으로 백트랙킹 여부를 나타내는 속성입니다.
+        /// </summary>
+        static public bool EnalbleSmartBackTracking = false;
 
         public int GridRlength
         {
@@ -745,25 +750,21 @@ namespace hidato_solver
                 }
                 else //그렇지 않으면
                 {
-                    ///InsertCount를 +1하고,  
-                    if (InsertCount < HowOftenChange)
+                    if (VariableBackTracking == true)
                     {
-                        InsertCount++;
-                    }
-                    else if (HowManyExitStack >= PossibleHowManyExitStack)
-                    {
-                        ///BackTraking하는 스택 깊이가 일정 횟수를 넘어가면 
-                        ///스택 깊이를 1로 초기화 하고
-                        ///InsertCount를 초기화함
-                        HowManyExitStack = 1;
-                        InsertCount = 0;
-                    }
-                    else
-                    {
-                        ///일정한 카운트를 넘어가면 BackTraking하는 스택 깊이를 +1하고,
-                        ///InsertCount를 초기화함
-                        HowManyExitStack++;
-                        InsertCount = 0;
+                        if (hidatoCount <= maxval * (30 / 100))
+                        {
+                            HowManyExitStack = 1;
+                        }
+                        else if (hidatoCount >= maxval * (80 / 100))
+                        {
+                            HowManyExitStack = maxval * (50 / 100);
+                        }
+                        else
+                        {
+                            HowManyExitStack = maxval * (10 * 100);
+                        }
+
                     }
 
                     if (current.data != 1)
@@ -818,19 +819,21 @@ namespace hidato_solver
 
             if (current.data == NextNode.data - 1 && PrevNodeIsPossible == false)
             {
-                if (InsertCount < HowOftenChange)
+                if (VariableBackTracking == true)
                 {
-                    InsertCount++;
-                }
-                else if (HowManyExitStack >= PossibleHowManyExitStack)
-                {
-                    HowManyExitStack = 1;
-                    InsertCount = 0;
-                }
-                else
-                {
-                    HowManyExitStack++;
-                    InsertCount = 0;
+                    if (hidatoCount <= maxval * (30 / 100))
+                    {
+                        HowManyExitStack = 1;
+                    }
+                    else if (hidatoCount >= maxval * (80 / 100))
+                    {
+                        HowManyExitStack = maxval * (50 / 100);
+                    }
+                    else
+                    {
+                        HowManyExitStack = maxval * (10 * 100);
+                    }
+
                 }
 
                 if (current.data != 1)
@@ -878,19 +881,22 @@ namespace hidato_solver
 
             if ((current != NextNode) && (current.data == NextNode.data))
             {
-                if (InsertCount < HowOftenChange)
+
+                if (VariableBackTracking == true)
                 {
-                    InsertCount++;
-                }
-                else if (HowManyExitStack >= PossibleHowManyExitStack)
-                {
-                    HowManyExitStack = 1;
-                    InsertCount = 0;
-                }
-                else
-                {
-                    HowManyExitStack++;
-                    InsertCount = 0;
+                    if(hidatoCount <= maxval * (30/100))
+                    {
+                        HowManyExitStack = 1;
+                    }
+                    else if(hidatoCount >= maxval * (80 / 100))
+                    {
+                        HowManyExitStack = maxval * (50 / 100);
+                    }
+                    else
+                    {
+                        HowManyExitStack = maxval * (10 * 100);
+                    }
+
                 }
 
                 if (current.data != 1)
@@ -929,19 +935,21 @@ namespace hidato_solver
             if (marker.sizeOfnumSet() == 0)
             {
 
-                if (InsertCount < HowOftenChange)
+                if (VariableBackTracking == true)
                 {
-                    InsertCount++;
-                }
-                else if (HowManyExitStack >= PossibleHowManyExitStack)
-                {
-                    HowManyExitStack = 1;
-                    InsertCount = 0;
-                }
-                else
-                {
-                    HowManyExitStack++;
-                    InsertCount = 0;
+                    if (hidatoCount <= maxval * (30 / 100))
+                    {
+                        HowManyExitStack = 1;
+                    }
+                    else if (hidatoCount >= maxval * (80 / 100))
+                    {
+                        HowManyExitStack = maxval * (50 / 100);
+                    }
+                    else
+                    {
+                        HowManyExitStack = maxval * (10 * 100);
+                    }
+
                 }
 
                 if (current.data != 1)
@@ -1135,6 +1143,23 @@ namespace hidato_solver
                 {
                     if (current.data != 1)
                     {
+                        if (VariableBackTracking == true)
+                        {
+                            if (hidatoCount <= maxval * (30 / 100))
+                            {
+                                HowManyExitStack = 1;
+                            }
+                            else if (hidatoCount >= maxval * (80 / 100))
+                            {
+                                HowManyExitStack = maxval * (50 / 100);
+                            }
+                            else
+                            {
+                                HowManyExitStack = maxval * (10 * 100);
+                            }
+
+                        }
+
                         if (PrevNode.data > current.data)
                         {
                             HintStack.Pop();
@@ -1192,8 +1217,6 @@ namespace hidato_solver
 
             RefBoard = board;
             DTNextUpdate = DTNextUpdate.AddSeconds(NextUpdateSoconds);
-
-            PossibleHowManyExitStack = 1;
 
             bool success = solve();
 
