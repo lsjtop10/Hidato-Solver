@@ -99,7 +99,7 @@ namespace Hidato_Solver_Gui_
 
             int xPosSolve = (this.Size.Width - buttonSolve.Size.Width - button1.Size.Width - ColumnSpacing) / 2;
             buttonSolve.Location = new Point(xPosSolve, nCols * RowSpacing + TopMargin);
-            button1.Location = new Point(xPosSolve + buttonSolve.Size.Width + ColumnSpacing, nCols * RowSpacing + TopMargin);
+            button1.Location = new Point(xPosSolve + buttonSolve.Size.Width + ColumnSpacing, nRows * RowSpacing + TopMargin);
         }
 
         private void HidatoBoard_TextChanged(object sender, EventArgs e)
