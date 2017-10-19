@@ -18,6 +18,7 @@ namespace Hidato_Solver_Gui_
     public partial class Hidato_Board : Form
     {
         private HidatoSolver hidato_solver;
+        private HidatoGrid hidatoGrid;
         private TextBox[,] displayed;
         public delegate void VoidDelegate();
         public delegate void VoidDelgate2VII(int a, int b);
@@ -65,7 +66,7 @@ namespace Hidato_Solver_Gui_
                 string[] sa = s.Split(' ');
                 for (int j = 0; j < row; j++)
                 {
-                    hidato_solver.SetDataAt(i, j, int.Parse(sa[j]));
+                    hidatoGrid.InputAt(i, j, int.Parse(sa[j]));
                 }
             }
 
@@ -79,7 +80,8 @@ namespace Hidato_Solver_Gui_
 
         private void InitializeArrays(int nCols, int nRows)
         {
-            hidato_solver = new HidatoSolver(nCols, nRows);
+            hidatoGrid = new HidatoGrid(nCols, nRows);
+            hidato_solver = new HidatoSolver(hidatoGrid);
             displayed = new TextBox[nCols, nRows];
 
             for (int i = 0; i < nCols; i++)
@@ -114,35 +116,56 @@ namespace Hidato_Solver_Gui_
             try
             {
                 data = int.Parse(s);
+                
+              
             }
             catch (FormatException) { }
             catch (OverflowException) { }
 
-            if (data > hidato_solver.GridClength * hidato_solver.GridRlength)
+            if (data == -1)
+            {
+                hidatoGrid.Disable++;
+            }
+            else if(hidatoGrid.GetDataAt(nCol, nRow) == -1 && data != -1)
+            {
+                hidatoGrid.Disable--;
+            }
+
+            if (data > hidatoGrid.GridClength * hidatoGrid.GridRlength - hidatoGrid.Disable)
             {
                 tb.BackColor = Color.Red;
                 tb.ForeColor = Color.Black;
-                hidato_solver.SetDataAt(nCol, nRow, data);
+
+                ///Node의 Input은 풀기 전 초기 값만 들어갸야 함으로 풀이가 진행중인 동안에 TaxtBox안에 Taxt가 바뀌면 Input에 들어가면 안 되기 때문에 
+                ///풀이가 진행중인 경우에는 InputAt함수를 호출하지 않습니다.
+                if (!hidato_solver.IsProcess)
+                {
+                    hidatoGrid.InputAt(nCol, nRow, data);
+                }
             }
             else if (data == -1)
             {
                 tb.BackColor = Color.Black;
                 tb.ForeColor = Color.White;
-                hidato_solver.SetDataAt(nCol, nRow, data);
+
+                hidatoGrid.InputAt(nCol, nRow, data);
             }
             else if (data > 0)
             {
                 tb.BackColor = Color.LightGreen;
                 tb.ForeColor = Color.Black;
-                hidato_solver.SetDataAt(nCol, nRow, data);
+
+                hidatoGrid.InputAt(nCol, nRow, data);
+                
             }
             else if (tb.TextLength == 0 || data == 0)
             {
                 tb.BackColor = Color.White;
                 tb.ForeColor = Color.Black;
-                hidato_solver.SetDataAt(nCol, nRow, 0);
+
+                hidatoGrid.InputAt(nCol, nRow, data);
             }
-            //hidato_solver.show();
+            //hidatoGrid.show();
         }
 
 
@@ -165,12 +188,12 @@ namespace Hidato_Solver_Gui_
             }
             else
             {
-                for (int i = 0; i < hidato_solver.GridClength; i++)
+                for (int i = 0; i < hidatoGrid.GridClength; i++)
                 {
-                    for (int j = 0; j < hidato_solver.GridRlength; j++)
+                    for (int j = 0; j < hidatoGrid.GridRlength; j++)
                     {
                         //해당 칸에 들어있는 숫자가 0이면
-                        int data = hidato_solver.GetDataAt(i, j);
+                        int data = hidatoGrid.GetDataAt(i, j);
                         if (data == 0)
                         {   //공백 출력
                             displayed[i, j].Text = " ";
@@ -190,21 +213,22 @@ namespace Hidato_Solver_Gui_
 
         private void ClearArrays()
         {
-            for (int i = 0; i < hidato_solver.GridClength; i++)
+            for (int i = 0; i < hidatoGrid.GridClength; i++)
             {
-                for (int j = 0; j < hidato_solver.GridRlength; j++)
+                for (int j = 0; j < hidatoGrid.GridRlength; j++)
                 {
-                    hidato_solver.SetDataAt(i, j, 0);
+                    hidatoGrid.InputAt(i, j, 0);
                 }
             }
         }
 
+        
         public bool success = false;
         private void buttonSolve_Click(object sender, EventArgs e)
         {
-            Task task1 = new Task(delegate { hidato_solver.startsolve(this); });
-
             //문제를 푸는데 성공하면
+            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.startsolve(this)));
+
             task1.Start();
         }
 
@@ -245,15 +269,15 @@ namespace Hidato_Solver_Gui_
                 Stream stream = dlg.OpenFile();
                 StreamWriter sw = new StreamWriter(stream);
 
-                sw.WriteLine(hidato_solver.GridClength.ToString());
-                sw.WriteLine(hidato_solver.GridRlength.ToString());
+                sw.WriteLine(hidatoGrid.GridClength.ToString());
+                sw.WriteLine(hidatoGrid.GridRlength.ToString());
 
-                for (int i = 0; i < hidato_solver.GridClength; i++)
+                for (int i = 0; i < hidatoGrid.GridClength; i++)
                 {
                     string str = null;
-                    for (int j = 0; j < hidato_solver.GridRlength; j++)
+                    for (int j = 0; j < hidatoGrid.GridRlength; j++)
                     {
-                        str = str + hidato_solver.GetDataAt(i, j).ToString() + " ";
+                        str = str + hidatoGrid.GetDataAt(i, j).ToString() + " ";
                     }
 
                     sw.WriteLine(str);
