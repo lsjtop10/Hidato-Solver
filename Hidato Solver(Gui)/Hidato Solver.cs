@@ -726,18 +726,6 @@ namespace hidato_solver
                 return true;
             }
 
-            if (ShowAllProcess == true)
-            {
-                RefBoard.UpdateTextBoxes();
-                DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
-                Thread.Sleep(ProcessWaitTime);
-            }
-            else if (DateTime.Now > DTNextUpdate)
-            {
-                RefBoard.UpdateTextBoxes();
-                DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
-            }
-
 
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
@@ -771,7 +759,7 @@ namespace hidato_solver
                         current = history.GetPrevElement().node;
 
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                        hidatoCount = current.data;
+                        hidatoCount = current.WorkSapce;
 
                         //스텍이 빠져나가는 깊이가 1이면
                         if (HowManyExitStack == 1)
@@ -841,7 +829,7 @@ namespace hidato_solver
                     current = history.GetPrevElement().node;
 
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                    hidatoCount = current.data;
+                    hidatoCount = current.WorkSapce;
 
                     if (HowManyExitStack == 1)
                     {
@@ -870,12 +858,11 @@ namespace hidato_solver
 
                   
                     //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
-                    current.Input = 0;
+                    current.WorkSapce = 0;
                     current = history.GetPrevElement().node;
-                   
 
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                    hidatoCount = current.data;
+                    hidatoCount = current.WorkSapce;
 
                     //빠져나가야 하는 스택 깊이가 1이면
                     if (HowManyExitStack == 1)
@@ -907,7 +894,7 @@ namespace hidato_solver
                     current = history.GetPrevElement().node;
                     
 
-                    hidatoCount = current.data;
+                    hidatoCount = current.WorkSapce;
 
                     return false;
                 }
@@ -1010,7 +997,7 @@ namespace hidato_solver
 
                         break;
                     }
-
+                    
                     insertNow.increase();
                 }
 
@@ -1021,12 +1008,12 @@ namespace hidato_solver
                     {
                        
                         //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
-                        current.Input = 0;
+                        current.WorkSapce = 0;
                         current = history.GetPrevElement().node;
                         
 
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                        hidatoCount = current.data;
+                        hidatoCount = current.WorkSapce;
 
                         NextNode = FindNextNode(current);
 
@@ -1038,6 +1025,7 @@ namespace hidato_solver
                     }
 
                 }
+
 
                 if (solve() == true)
                 {
@@ -1051,7 +1039,7 @@ namespace hidato_solver
 
         public void startsolve(Hidato_Board board)
         {
-
+            m_isProcess = true;
             DateTime dtstart = DateTime.Now;
             current = FirstNode = FindFirstNode();
             maxval = FindMaxVal();
@@ -1065,6 +1053,7 @@ namespace hidato_solver
 
             bool success = solve();
 
+            m_isProcess = false;
             if (success && !SolveCancel)
             {
                 RefBoard.ShowSFdialog(true, dtstart);

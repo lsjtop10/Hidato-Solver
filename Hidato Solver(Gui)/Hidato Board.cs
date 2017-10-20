@@ -148,22 +148,33 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.Black;
                 tb.ForeColor = Color.White;
 
-                hidatoGrid.InputAt(nCol, nRow, data);
+                if (hidato_solver.IsProcess == false)
+                {
+                    hidatoGrid.InputAt(nCol, nRow, data);
+                }
+
             }
             else if (data > 0)
             {
                 tb.BackColor = Color.LightGreen;
                 tb.ForeColor = Color.Black;
 
-                hidatoGrid.InputAt(nCol, nRow, data);
-                
+                if (hidato_solver.IsProcess == false)
+                {
+                    hidatoGrid.InputAt(nCol, nRow, data);
+                }
+
             }
             else if (tb.TextLength == 0 || data == 0)
             {
                 tb.BackColor = Color.White;
                 tb.ForeColor = Color.Black;
 
-                hidatoGrid.InputAt(nCol, nRow, data);
+                if (hidato_solver.IsProcess == false)
+                {
+                    hidatoGrid.InputAt(nCol, nRow, data);
+                }
+
             }
             //hidatoGrid.show();
         }
