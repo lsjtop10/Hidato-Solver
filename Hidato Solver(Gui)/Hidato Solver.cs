@@ -394,6 +394,7 @@ namespace hidato_solver
         private WhereInsertNow insertNow = new WhereInsertNow((int)side.N, (int)side.NW, (int)side.N);
         private bool SmartSuch = false;
         private bool m_isProcess = false;
+        private List<HidatoGrid.Node> NodeOfHidatoGridList;
 
         /// <summary>
         /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
@@ -708,6 +709,9 @@ namespace hidato_solver
 
             return HintCount;
         }
+
+       
+
         #endregion
 
         //몆번에 한번 꼴로 HowManyExitStack변수의 값을 올릴 것 인지 설정하는 상수
@@ -720,12 +724,23 @@ namespace hidato_solver
             int CurrentData = current.data;
 #endif
 
-
+            
             if (SolveCancel)
             {
                 return true;
             }
 
+            //if (ShowAllProcess == true)
+            //{
+            //    RefBoard.UpdateTextBoxes();
+            //    DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+            //    Thread.Sleep(ProcessWaitTime);
+            //}
+            //else if (DateTime.Now > DTNextUpdate)
+            //{
+            //    RefBoard.UpdateTextBoxes();
+            //    DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+            //}
 
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
@@ -759,7 +774,7 @@ namespace hidato_solver
                         current = history.GetPrevElement().node;
 
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                        hidatoCount = current.WorkSapce;
+                        hidatoCount = current.data;
 
                         //스텍이 빠져나가는 깊이가 1이면
                         if (HowManyExitStack == 1)
@@ -829,7 +844,7 @@ namespace hidato_solver
                     current = history.GetPrevElement().node;
 
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                    hidatoCount = current.WorkSapce;
+                    hidatoCount = current.data;
 
                     if (HowManyExitStack == 1)
                     {
@@ -862,7 +877,7 @@ namespace hidato_solver
                     current = history.GetPrevElement().node;
 
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                    hidatoCount = current.WorkSapce;
+                    hidatoCount = current.data;
 
                     //빠져나가야 하는 스택 깊이가 1이면
                     if (HowManyExitStack == 1)
@@ -1013,7 +1028,7 @@ namespace hidato_solver
                         
 
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
-                        hidatoCount = current.WorkSapce;
+                        hidatoCount = current.data;
 
                         NextNode = FindNextNode(current);
 
@@ -1026,6 +1041,17 @@ namespace hidato_solver
 
                 }
 
+                if (ShowAllProcess == true)
+                {
+                    RefBoard.UpdateTextBoxes();
+                    DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                    Thread.Sleep(ProcessWaitTime);
+                }
+                else if (DateTime.Now > DTNextUpdate)
+                {
+                    RefBoard.UpdateTextBoxes();
+                    DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                }
 
                 if (solve() == true)
                 {
