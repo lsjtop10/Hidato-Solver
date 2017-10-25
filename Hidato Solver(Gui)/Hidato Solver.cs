@@ -65,6 +65,11 @@ namespace hidato_solver
             current = hard;
         }
 
+        public history currentNode
+        {
+            get { return }
+        }
+
         public void AddNode(HidatoGrid.Node node)
         {
             //while(current.next != null)
@@ -394,7 +399,7 @@ namespace hidato_solver
         private WhereInsertNow insertNow = new WhereInsertNow((int)side.N, (int)side.NW, (int)side.N);
         private bool SmartSuch = false;
         private bool m_isProcess = false;
-        private List<HidatoGrid.Node> NodeOfHidatoGridList;
+        private List<HidatoGrid.Node> NodeOfHidatoGridList = new List<HidatoGrid.Node>();
 
         /// <summary>
         /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
@@ -710,7 +715,73 @@ namespace hidato_solver
             return HintCount;
         }
 
-       
+        private HidatoGrid.Node FindMinPossibe()
+        {
+            NodeOfHidatoGridList.Sort(delegate (HidatoGrid.Node c1, HidatoGrid.Node c2) { return c1.data.CompareTo(c2.data); });
+
+            HidatoGrid.Node start = null;
+            HidatoGrid.Node end = null;
+
+            HidatoGrid.Node minNode = null;
+            HidatoGrid.Node nextNodeOfminNode = null;
+
+            int size = maxval;
+
+            for (int i = 0; i < NodeOfHidatoGridList.Count; i++)
+            {
+                //현재 노드
+                HidatoGrid.Node currentNode = NodeOfHidatoGridList[i];
+
+                if(currentNode.data == 0)
+                {
+                    NodeOfHidatoGridList.Remove(currentNode);
+                    continue;
+                }
+                else
+                {
+                    if (start == null)
+                    {
+                        start = currentNode;
+                    }
+                    else if (end == null)
+                    {
+                        end = currentNode;
+
+                        if (end.data - start.data < size && end.data - start.data != 1)
+                        {
+                            size = end.data - start.data;
+                            minNode = start;
+                            nextNodeOfminNode = end;
+                        }
+
+                        start = end;
+                        end = null;
+                    }
+
+                }
+
+            }
+
+            //NextNode = nextNodeOfminNode;
+            return minNode;
+
+        }
+
+        private void InitList()
+        {
+            for (int i = 0; i < m_hidatoGrid.GridClength; i++)
+            {
+                for (int j = 0; j < m_hidatoGrid.GridRlength; j++)
+                {
+                    HidatoGrid.Node nNode = m_hidatoGrid.GetNodeAt(i, j);
+                    if (nNode.data > 0)
+                    {
+                        NodeOfHidatoGridList.Add(nNode);
+                    }
+                }
+            }
+        }
+
 
         #endregion
 
@@ -742,6 +813,14 @@ namespace hidato_solver
             //    DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
             //}
 
+            //SmartSuch옵션이 켜져 있으면
+            if(SmartSuch == true)
+            {
+                //가장 작은 경우의 수를 가지는 구간의 시작 노드를 현재 노드로 설정하고 그 다음 노드(구간의 끝 노드)를 NextNode변수에 저장
+                current = FindMinPossibe();
+                NextNode = FindNextNode(current);
+            }
+
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
 
@@ -753,11 +832,20 @@ namespace hidato_solver
                 ///바로 이전 노드가 올바르면(붙어 있으면)
                 if (PrevNodeIsPossible == true)
                 {
-                    //NextNode를 업데이트하고 현재 노드를 업데이트 전의 NextNode로 바꿈
-                    current = NextNode;
-                    hidatoCount = current.data;
-                    NextNode = FindNextNode(current);
-                    history.AddNode(current);
+                    //if (SmartSuch == true)
+                    //{
+                    //    current = FindMinPossibe();
+                    //    NextNode = FindNextNode(current);
+                    //}
+                    //else
+                    {
+                        //NextNode를 업데이트하고 현재 노드를 업데이트 전의 NextNode로 바꿈
+                        current = NextNode;
+                        hidatoCount = current.data;
+                        NextNode = FindNextNode(current);
+                        history.AddNode(current);
+                    }
+
                     if (solve())
                     {
                         return true;
@@ -874,6 +962,7 @@ namespace hidato_solver
                   
                     //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                     current.WorkSapce = 0;
+                    if(current.data == history.)
                     current = history.GetPrevElement().node;
 
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
@@ -927,6 +1016,8 @@ namespace hidato_solver
                 {
                     if (marker.SurchMarker[insertNow.current] == true)
                     {
+                        hidatoCount = current.data;
+
                         #region current참조를 알맞은 위치로 옮기는 코드블럭 입니다.
                         if (insertNow.current == (int)side.N)
                         {
@@ -960,13 +1051,9 @@ namespace hidato_solver
                         {
                             current = current.NW;
                         }
-                        else
-                        {
-                            InsertSuccess = false;
-
-                            break;
-                        }
                         #endregion
+
+                        NodeOfHidatoGridList.Add(current);
 
                         hidatoCount++;
                         current.WorkSapce = hidatoCount;
@@ -1065,6 +1152,7 @@ namespace hidato_solver
 
         public void startsolve(Hidato_Board board)
         {
+           
             m_isProcess = true;
             DateTime dtstart = DateTime.Now;
             current = FirstNode = FindFirstNode();
@@ -1072,7 +1160,8 @@ namespace hidato_solver
             history = new history();
             history.AddNode(current);
             NextNode = FindNextNode(current);
-
+            InitList();
+            SmartSuch = true;
 
             RefBoard = board;
             DTNextUpdate = DTNextUpdate.AddSeconds(NextUpdateSoconds);
