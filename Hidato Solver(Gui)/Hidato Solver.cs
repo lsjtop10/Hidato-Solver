@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Hidato_Solver_Gui_;
 using System.Threading;
+using static System.Math;
 
 
 namespace hidato_solver
@@ -65,9 +66,9 @@ namespace hidato_solver
             current = hard;
         }
 
-        public history currentNode
+        public history.Node currentNode
         {
-            get { return }
+            get { return current; }
         }
 
         public void AddNode(HidatoGrid.Node node)
@@ -156,11 +157,6 @@ namespace hidato_solver
             get { return m_Clength; }
         }
 
-        //public int Disable
-        //{
-        //    get { return m_Disable;}
-        //    set { if (0 < value) { m_Disable = value; } }
-        //}
 
         public class Node
         {
@@ -176,6 +172,8 @@ namespace hidato_solver
             public Node SW;
             public Node W;
             public Node NW;
+
+            public SurchMarking marker;
 
             public int Input = 0;
             public int WorkSapce = 0;
@@ -334,7 +332,27 @@ namespace hidato_solver
             return TagetData;
         }
 
+        public int DisableBoxesCount()
+        {
+            Disable = 0;
+            int disableCount = 0;
+            for(int i = 0; i < GridClength; i++)
+            {
+                for(int j = 0; j < GridRlength; j++)
+                {
+                    if(GetDataAt(i,j) == 0)
+                    {
+                        disableCount++;
+                    }
+                }
+            }
+
+            Disable = disableCount;
+            return disableCount;
+        }
+
     }
+
 
     public class WhereInsertNow
     {
@@ -380,6 +398,7 @@ namespace hidato_solver
 
     }
 
+
     class HidatoSolver
     {
         private int hidatoCount = 1;
@@ -400,6 +419,10 @@ namespace hidato_solver
         private bool SmartSuch = false;
         private bool m_isProcess = false;
         private List<HidatoGrid.Node> NodeOfHidatoGridList = new List<HidatoGrid.Node>();
+        /// <summary>
+        /// 비어있는 칸 카운트
+        /// </summary>
+        private int EmptyNodeCount;
 
         /// <summary>
         /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
@@ -420,8 +443,9 @@ namespace hidato_solver
 
         /// <summary>
         /// 진행률에 따라 가변적으로 백트랙킹 여부를 나타내는 속성입니다.
+        /// -1은 항상 비활성화 0은 자동 1은 항상 활성화를 나타냅니다.
         /// </summary>
-        static public bool EnalbleSmartSuchTracking = false;
+        static public int EnalbleSmartSuchTracking = -1;
 
         public HidatoSolver(HidatoGrid refHidatoGrid)
         {
@@ -719,6 +743,7 @@ namespace hidato_solver
         {
             NodeOfHidatoGridList.Sort(delegate (HidatoGrid.Node c1, HidatoGrid.Node c2) { return c1.data.CompareTo(c2.data); });
 
+            //구간의 시작부분과 마지막 부분을 저장하는 변수
             HidatoGrid.Node start = null;
             HidatoGrid.Node end = null;
 
@@ -747,11 +772,18 @@ namespace hidato_solver
                     {
                         end = currentNode;
 
-                        if (end.data - start.data < size && end.data - start.data != 1)
+                        //if()
+
+                        if (end.data - start.data < size && end.data - start.data > 1)
                         {
-                            size = end.data - start.data;
-                            minNode = start;
-                            nextNodeOfminNode = end;
+                            //모든 면이 둘러사여 있어 애초에 불가능한 구간은 건너뜀
+                            if(FindOption(start).sizeOfnumSet() != 0)
+                            {
+                                size = end.data - start.data;
+                                minNode = start;
+                                nextNodeOfminNode = end;
+                            }
+                            
                         }
 
                         start = end;
@@ -814,30 +846,39 @@ namespace hidato_solver
             //}
 
             //SmartSuch옵션이 켜져 있으면
-            if(SmartSuch == true)
-            {
-                //가장 작은 경우의 수를 가지는 구간의 시작 노드를 현재 노드로 설정하고 그 다음 노드(구간의 끝 노드)를 NextNode변수에 저장
-                current = FindMinPossibe();
-                NextNode = FindNextNode(current);
-            }
+            //if (SmartSuch == true)
+            //{
+            //    //가장 작은 경우의 수를 가지는 구간의 시작 노드를 현재 노드로 설정하고 그 다음 노드(구간의 끝 노드)를 NextNode변수에 저장
+            //    current = FindMinPossibe();
+            //    NextNode = FindNextNode(current);
+            //}
 
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
-
             SurchMarking marker = FindOption(current);
 
+            //비어있는 칸이 더 이상 없으면
+            if (EmptyNodeCount == 0)
+            {
+                //풀린것
+                return true;
+            }
+
+            
             ///현재 노드의 데이터가 다음 노드의 데이터보다 1이 작고, 다음 노드가 최대값이 아니면서
-            if (current.data == NextNode.data - 1 && NextNode.data != maxval)
+            #region 이전 노드의 유효성 검사
+            if (current.data == NextNode.data - 1)
             {
                 ///바로 이전 노드가 올바르면(붙어 있으면)
                 if (PrevNodeIsPossible == true)
                 {
-                    //if (SmartSuch == true)
-                    //{
-                    //    current = FindMinPossibe();
-                    //    NextNode = FindNextNode(current);
-                    //}
-                    //else
+                    if (SmartSuch == true)
+                    {
+                        current = FindMinPossibe();
+
+                        NextNode = FindNextNode(current);
+                    }
+                    else
                     {
                         //NextNode를 업데이트하고 현재 노드를 업데이트 전의 NextNode로 바꿈
                         current = NextNode;
@@ -853,14 +894,23 @@ namespace hidato_solver
                 }
                 else //그렇지 않으면
                 {
-
                     if (current.data != 1)
                     {
                       
-                        //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
+                        //현재노드의 작업 공간(worksace)를 0으로 설정하고,(변경사항 없음 이라고 표시) 바로 이전 노드로 되돌림
                         current.WorkSapce = 0;
-                        current = history.GetPrevElement().node;
 
+                        //smartshch기능을 사용하면 history의 맨 윗부분이 현재노드와 같지 않기 때문에 
+                        if (current == history.currentNode.node)
+                        {
+                            //맨 윗부분의 이전노드가 아니라 
+                            current = history.GetPrevElement().node;
+                        }
+                        //else
+                        {
+                            //맨 윗부분 노드를 현재 노드로 설정함
+                            current = history.GetCurrentElement().node;
+                        }
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                         hidatoCount = current.data;
 
@@ -880,13 +930,28 @@ namespace hidato_solver
                             NextNodeHasUpdated = false;
                         }
 
+                        #region 디버그를 편하게 하기 위해서 바로 업데이트 함
+#if DEBUG
+                        if (ShowAllProcess == true)
+                        {
+                            RefBoard.UpdateTextBoxes();
+                            DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                            Thread.Sleep(ProcessWaitTime);
+                        }
+                        else if (DateTime.Now > DTNextUpdate)
+                        {
+                            RefBoard.UpdateTextBoxes();
+                            DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                        }
+
+#endif
+                        #endregion
+
+                        EmptyNodeCount++;
+
                         return false;
                     }
                 }
-            }
-            else if (current.data == maxval - 1 && PrevNodeIsPossible == true)
-            {
-                return true;
             }
 
             if (current.data == NextNode.data - 1 && PrevNodeIsPossible == false)
@@ -897,11 +962,18 @@ namespace hidato_solver
                     
                     //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                     current.WorkSapce = 0;
-                    current = history.GetPrevElement().node;
-                    
 
+                    if (current == history.currentNode.node)
+                    {
+                        //맨 윗부분의 이전노드가 아니라 
+                        current = history.GetPrevElement().node;
+                    }
+                    else
+                    {
+                        //    맨 윗부분 노드를 현재 노드로 설정함
+                        current = history.GetCurrentElement().node;
+                    }
 
-                    //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                     hidatoCount = current.data;
 
                     if (HowManyExitStack == 1)
@@ -916,6 +988,24 @@ namespace hidato_solver
 
                     hidatoCount = current.data;
 
+                    #region 디버그를 편하게 하기 위해서 바로 업데이트 함
+#if DEBUG
+                    if (ShowAllProcess == true)
+                    {
+                        RefBoard.UpdateTextBoxes();
+                        DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                        Thread.Sleep(ProcessWaitTime);
+                    }
+                    else if (DateTime.Now > DTNextUpdate)
+                    {
+                        RefBoard.UpdateTextBoxes();
+                        DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                    }
+
+#endif
+                    #endregion
+
+                    EmptyNodeCount++;
                     return false;
                 }
             }
@@ -929,9 +1019,19 @@ namespace hidato_solver
                     StackCount = 1;
 
                     current.WorkSapce = 0;
-                    current = history.GetPrevElement().node;
 
-                    //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
+                    if (current == history.currentNode.node)
+                    {
+                        //맨 윗부분의 이전노드가 아니라 
+                        current = history.GetPrevElement().node;
+                    }
+                    else
+                    {
+                        //맨 윗부분 노드를 현재 노드로 설정함
+                        current = history.GetCurrentElement().node;
+                    }
+                    //HidatoCount변수를 바꾼 현재노드의 데이터로 설정함
+
                     hidatoCount = current.data;
 
                     if (HowManyExitStack == 1)
@@ -946,6 +1046,24 @@ namespace hidato_solver
 
                     hidatoCount = current.data;
 
+                    #region 디버그를 편하게 하기 위해서 바로 업데이트 함
+#if DEBUG
+                    if (ShowAllProcess == true)
+                    {
+                        RefBoard.UpdateTextBoxes();
+                        DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                        Thread.Sleep(ProcessWaitTime);
+                    }
+                    else if (DateTime.Now > DTNextUpdate)
+                    {
+                        RefBoard.UpdateTextBoxes();
+                        DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                    }
+
+#endif
+                    #endregion
+
+                    EmptyNodeCount++;
                     return false;
                 }
 
@@ -962,8 +1080,17 @@ namespace hidato_solver
                   
                     //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                     current.WorkSapce = 0;
-                    if(current.data == history.)
-                    current = history.GetPrevElement().node;
+
+                    if (current == history.currentNode.node)
+                    {
+                        //맨 윗부분의 이전노드가 아니라 
+                        current = history.GetPrevElement().node;
+                    }
+                    else
+                    {
+                        //맨 윗부분 노드를 현재 노드로 설정함
+                        current = history.GetCurrentElement().node;
+                    }
 
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                     hidatoCount = current.data;
@@ -981,34 +1108,56 @@ namespace hidato_solver
                         //아니면 while문 끝나고 처리 하게 업데이트가 되지 않았다는 표시만 함
                         NextNodeHasUpdated = false;
                     }
+#region 디버그를 편하게 하기 위해서 바로 업데이트 함
+#if DEBUG
+                    if (ShowAllProcess == true)
+                    {
+                        RefBoard.UpdateTextBoxes();
+                        DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                        Thread.Sleep(ProcessWaitTime);
+                    }
+                    else if (DateTime.Now > DTNextUpdate)
+                    {
+                        RefBoard.UpdateTextBoxes();
+                        DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                    }
 
+#endif
+                    #endregion
+
+                    EmptyNodeCount++;
                     return false;
                 }
 
             }
+            #endregion
+
+            history.AddNode(current);
 
             for (int i = 0; i < 8; i++)
             {
-                while (StackCount < HowManyExitStack)
-                {
-                    StackCount++;
+                #region 가변 백트랙킹 기능 구현을 위한 코드
+                //while (StackCount < HowManyExitStack)
+                //{
+                //    StackCount++;
 
-                    //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
-                    current.Input = 0;
-                    current = history.GetPrevElement().node;
-                    
+                //    //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
+                //    current.WorkSapce = 0;
 
-                    hidatoCount = current.WorkSapce;
+                //    current = history.GetPrevElement().node;
 
-                    return false;
-                }
+                //    hidatoCount = current.WorkSapce;
+
+                //    return false;
+                //}
 
 
-                if (NextNodeHasUpdated == false)
-                {
-                    NextNode = FindNextNode(current);
-                    NextNodeHasUpdated = true;
-                }
+                //if (NextNodeHasUpdated == false)
+                //{
+                //    NextNode = FindNextNode(current);
+                //    NextNodeHasUpdated = true;
+                //}
+                #endregion
 
                 bool InsertSuccess = false;
 
@@ -1016,6 +1165,7 @@ namespace hidato_solver
                 {
                     if (marker.SurchMarker[insertNow.current] == true)
                     {
+
                         hidatoCount = current.data;
 
                         #region current참조를 알맞은 위치로 옮기는 코드블럭 입니다.
@@ -1057,7 +1207,9 @@ namespace hidato_solver
 
                         hidatoCount++;
                         current.WorkSapce = hidatoCount;
-                        history.AddNode(current);
+                        //history.AddNode(current);
+                        //비어있는 칸이 1칸 줄어들기 때문에 1을 줄여야 합니다.
+                        EmptyNodeCount--;
                         //이미 탐색한 자리임으로 false마킹
                         #region 이미 탐색한 자리는 false로 마킹합니다. 
                         if (insertNow.current == (int)side.N)
@@ -1095,6 +1247,23 @@ namespace hidato_solver
                         #endregion
 
 
+                        #region 디버그를 편하게 하기 위해서 바로 업데이트 함
+#if DEBUG
+                        if (ShowAllProcess == true)
+                        {
+                            RefBoard.UpdateTextBoxes();
+                            DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                            Thread.Sleep(ProcessWaitTime);
+                        }
+                        else if (DateTime.Now > DTNextUpdate)
+                        {
+                            RefBoard.UpdateTextBoxes();
+                            DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                        }
+
+#endif
+                        #endregion
+
                         InsertSuccess = true;
 
                         break;
@@ -1111,14 +1280,41 @@ namespace hidato_solver
                        
                         //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                         current.WorkSapce = 0;
-                        current = history.GetPrevElement().node;
-                        
+
+                        if (current == history.currentNode.node)
+                        {
+                            //맨 윗부분의 이전노드가 아니라 
+                            current = history.GetPrevElement().node;
+                        }
+                        else
+                        {
+                            //맨 윗부분 노드를 현재 노드로 설정함
+                            current = history.GetCurrentElement().node;
+                        }
 
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                         hidatoCount = current.data;
 
                         NextNode = FindNextNode(current);
 
+
+                        #region 디버그를 편하게 하기 위해서 바로 업데이트 함
+#if DEBUG
+                        if (ShowAllProcess == true)
+                        {
+                            RefBoard.UpdateTextBoxes();
+                            DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                            Thread.Sleep(ProcessWaitTime);
+                        }
+                        else if (DateTime.Now > DTNextUpdate)
+                        {
+                            RefBoard.UpdateTextBoxes();
+                            DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
+                        }
+
+#endif
+                        #endregion
+                        EmptyNodeCount++;
                         return false;
                     }
                     else
@@ -1127,6 +1323,7 @@ namespace hidato_solver
                     }
 
                 }
+                
 
                 if (ShowAllProcess == true)
                 {
@@ -1144,24 +1341,31 @@ namespace hidato_solver
                 {
                     return true;
                 }
-
             }
+
 
             return false;
         }
 
         public void startsolve(Hidato_Board board)
         {
-           
+
+            SolveCancel = false;
             m_isProcess = true;
             DateTime dtstart = DateTime.Now;
             current = FirstNode = FindFirstNode();
             maxval = FindMaxVal();
             history = new history();
-            history.AddNode(current);
+            //history.AddNode(current);
             NextNode = FindNextNode(current);
             InitList();
             SmartSuch = true;
+            EmptyNodeCount = maxval - HintCount();
+
+            if (SmartSuch == true)
+            {
+                current = FindMinPossibe();
+            }
 
             RefBoard = board;
             DTNextUpdate = DTNextUpdate.AddSeconds(NextUpdateSoconds);

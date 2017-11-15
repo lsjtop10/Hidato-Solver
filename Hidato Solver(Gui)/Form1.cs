@@ -100,5 +100,10 @@ namespace Hidato_Solver_Gui_
         {
 
         }
+
+        private void groupBox2_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }
