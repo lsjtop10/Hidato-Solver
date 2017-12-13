@@ -46,89 +46,153 @@ namespace hidato_solver
         }
     }
 
-    class history
-    {
-        private Node current;
-        private Node hard;
+    //class history
+    //{
+    //    private Node current;
+    //    private Node hard;
 
-        //구조체로 하면 에러가 난다 구조체는 참조 형식이 아니라 값 형식이기 때문
-        public class Node
-        {
-            public HidatoGrid.Node node;
-            public history.Node next;
-            public history.Node prev;
+    //    //구조체로 하면 에러가 난다 구조체는 참조 형식이 아니라 값 형식이기 때문
+    //    public class Node
+    //    {
+    //        public HidatoGrid.Node node;
+    //        public history.Node next;
+    //        public history.Node prev;
 
-        }
+    //    }
 
-        public history()
-        {
-            hard = new history.Node();
-            current = hard;
-        }
+    //    public history()
+    //    {
+    //        hard = new history.Node();
+    //        current = hard;
+    //    }
 
-        public history.Node currentNode
-        {
-            get { return current; }
-        }
+    //    public history.Node GetPrevElement
+    //    {
+    //        get { return current; }
+    //    }
 
-        public void AddNode(HidatoGrid.Node node)
-        {
-            //while(current.next != null)
-            //{
-            //    current = current.next; 
-            //}
+    //    public void AddNode(HidatoGrid.Node node)
+    //    {
+    //        //while(current.next != null)
+    //        //{
+    //        //    current = current.next; 
+    //        //}
 
-            history.Node temp = new history.Node();
-            temp.node = node;
-            current.next = temp;
-            temp.prev = current;
+    //        history.Node temp = new history.Node();
+    //        temp.node = node;
+    //        current.next = temp;
+    //        temp.prev = current;
 
 
-            current = current.next;
-        }
+    //        current = current.next;
+    //    }
 
-        public history.Node GetCurrentElement()
-        {
-            Node temp = current;
+    //    public history.Node GetCurrentElement()
+    //    {
+    //        Node temp = current;
 
-            if (current.node.data == 1)
-            {
-                return current;
-            }
-            //else
-            //{
-            //    current = current.prev;
+    //        if (current.node.data == 1)
+    //        {
+    //            return current;
+    //        }
+    //        //else
+    //        //{
+    //        //    current = current.prev;
 
-            //    current.next.prev = null;
-            //    current.next = null;
-            //}
+    //        //    current.next.prev = null;
+    //        //    current.next = null;
+    //        //}
 
-            return temp;
-        }
+    //        return temp;
+    //    }
 
-        public history.Node GetPrevElement()
-        {
+    //    public history.Node prevNode
+    //    {
 
-            if (current.node.data == 1)
-            {
-                return current;
-            }
-            else
-            {
-                current = current.prev;
-                current.next.prev = null;
-                current.next = null;
-            }
+    //        if (current.node.data == 1)
+    //        {
+    //            return current;
+    //        }
+    //        else
+    //        {
+    //            current = current.prev;
+    //            current.next.prev = null;
+    //            current.next = null;
+    //        }
 
-            return current;
-        }
-    }
+    //        return current;
+    //    }
+    //}
+
 
     //hidato는 인접한 면에 자기숫자 +1만큼의 숫자가 들어가야 합니다. 
     //그래서 주변의 인접한 면과 연결되야 하는데.저는 링크드 리스트(연결된 리스트)를 사용하겠습니다.
     //연결된 리스트는 추적을 위한 hard값과 나머지node 를 서로 참조(원래는 포인터를 이용합니다.)즉 가리키게 해서
     //묶어놓는 방식입니다. 지금은 8개의 면과 대응되야 하기 때문에 8개의 변수를 만들겠습니다.
     //node의 삽입과 삭제는 필요가 없기 때문에 (처음에 판만 만들면 되므로) 삭제는 구현에서 생략합니다.
+
+    class history
+    {
+        private List<HidatoGrid.Node> m_history = new List<HidatoGrid.Node>();
+
+        public void AddNode(HidatoGrid.Node node)
+        {
+            this.m_history.Add(node);
+            m_history.Sort(delegate (HidatoGrid.Node c1, HidatoGrid.Node c2) { return c1.data.CompareTo(c2.data); });
+        }
+
+        public HidatoGrid.Node currentNode
+        {
+            get {
+                    if (m_history.Count == 0)
+                    {
+                        return m_history[0];
+                    }
+                    else
+                    {
+                        return m_history[m_history.Count - 1];
+                    }
+                }
+        }
+
+        //public HidatoGrid.Node prevNode
+        //{
+        //    get
+        //    {
+        //        m_history.RemoveAt(m_history.Count - 1);
+        //        return currentNode;
+        //    }
+        //}
+
+        public HidatoGrid.Node getPrevNode(HidatoGrid.Node current)
+        {
+            int cost = current.data;
+            HidatoGrid.Node MinCostNode = null;
+            for(int i = 0; i < m_history.Count; i++)
+            {
+                int CurrentCost;
+                HidatoGrid.Node CurrentNode = m_history[i];
+
+                CurrentCost = current.data - CurrentNode.data;
+
+                if(CurrentCost < cost)
+                {
+                    cost = CurrentCost;
+                    MinCostNode = CurrentNode;
+                }
+
+                if(CurrentCost <= 0)
+                {
+                    break;
+                }
+
+            }
+
+            m_history.Remove(MinCostNode);
+            return MinCostNode;
+        }
+    }
+
     class HidatoGrid
     {
         private Node hard = null;
@@ -156,7 +220,6 @@ namespace hidato_solver
         {
             get { return m_Clength; }
         }
-
 
         public class Node
         {
@@ -200,6 +263,14 @@ namespace hidato_solver
                     insertMarking[i] = false;
                 }
 
+            }
+
+            public void emptyMarker()
+            {
+                for (int i = 0; i < this.marker.SurchMarker.Length; i++)
+                {
+                    this.marker.SurchMarker[i] = false;
+                }
             }
 
         }
@@ -408,10 +479,6 @@ namespace hidato_solver
         private int maxval;
         private HidatoGrid.Node NextNode;
         private HidatoGrid.Node FirstNode;
-        private int StackCount = 1;
-        private int HowManyExitStack = 1;
-        private int InsertCount = 0;
-        private bool NextNodeHasUpdated = true;
         private DateTime DTNextUpdate;
         private Hidato_Board RefBoard;
         private bool SolveCancel = false;
@@ -855,7 +922,9 @@ namespace hidato_solver
 
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
-            SurchMarking marker = FindOption(current);
+
+            current.marker = FindOption(current);
+            
 
             //비어있는 칸이 더 이상 없으면
             if (EmptyNodeCount == 0)
@@ -872,6 +941,8 @@ namespace hidato_solver
                 ///바로 이전 노드가 올바르면(붙어 있으면)
                 if (PrevNodeIsPossible == true)
                 {
+                    history.AddNode(current);
+
                     if (SmartSuch == true)
                     {
                         current = FindMinPossibe();
@@ -884,7 +955,7 @@ namespace hidato_solver
                         current = NextNode;
                         hidatoCount = current.data;
                         NextNode = FindNextNode(current);
-                        history.AddNode(current);
+                        
                     }
 
                     if (solve())
@@ -896,39 +967,31 @@ namespace hidato_solver
                 {
                     if (current.data != 1)
                     {
-                      
-                        //현재노드의 작업 공간(worksace)를 0으로 설정하고,(변경사항 없음 이라고 표시) 바로 이전 노드로 되돌림
-                        current.WorkSapce = 0;
 
-                        //smartshch기능을 사용하면 history의 맨 윗부분이 현재노드와 같지 않기 때문에 
-                        if (current == history.currentNode.node)
+                        //현재노드의 작업 공간(worksace)를 0으로 설정하고,(변경사항 없음 이라고 표시) 바로 이전 노드로 되돌림
+                        HidatoGrid.Node prevNode = history.getPrevNode(current);
+                        current.WorkSapce = 0;
+                        current.emptyMarker();
+
+                        //if (current == history.currentNode)
                         {
                             //맨 윗부분의 이전노드가 아니라 
-                            current = history.GetPrevElement().node;
+                            current = prevNode;
                         }
                         //else
-                        {
+                        //{
                             //맨 윗부분 노드를 현재 노드로 설정함
-                            current = history.GetCurrentElement().node;
-                        }
+                            //current = history.currentNode;
+                        //}
+
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                         hidatoCount = current.data;
 
-                        //스텍이 빠져나가는 깊이가 1이면
-                        if (HowManyExitStack == 1)
-                        {
-                            //NextNode변수를 업데이트 하고
-                            NextNode = FindNextNode(current);
-                            //NextNode변수 업데이트 여부를 저장하는 bool형 변수를 true로 마킹
-                            NextNodeHasUpdated = true;
-                        }
-                        else
-                        {
-                            ///아니면 NextNode변수 업데이트 여부를 저장하는 bool형 변수를 false로 마킹을해서
-                            ///스택 깊이만큼 BackTracking처리하는 while문에서 처리가 끝나면 
-                            ///최종 값으로 업데이트 되게 맡킴
-                            NextNodeHasUpdated = false;
-                        }
+                        //NextNode를 업데이트 함
+                        NextNode = FindNextNode(current);
+
+                        EmptyNodeCount++;
+
 
                         #region 디버그를 편하게 하기 위해서 바로 업데이트 함
 #if DEBUG
@@ -947,8 +1010,7 @@ namespace hidato_solver
 #endif
                         #endregion
 
-                        EmptyNodeCount++;
-
+                        
                         return false;
                     }
                 }
@@ -959,34 +1021,27 @@ namespace hidato_solver
 
                 if (current.data != 1)
                 {
-                    
-                    //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
-                    current.WorkSapce = 0;
 
-                    if (current == history.currentNode.node)
+                    //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
+                    HidatoGrid.Node prevNode = history.getPrevNode(current);
+                    current.WorkSapce = 0;
+                    current.emptyMarker();
+
+                    //if (current == history.currentNode)
                     {
                         //맨 윗부분의 이전노드가 아니라 
-                        current = history.GetPrevElement().node;
+                        current = prevNode;
                     }
-                    else
-                    {
-                        //    맨 윗부분 노드를 현재 노드로 설정함
-                        current = history.GetCurrentElement().node;
-                    }
+                    //else
+                    //{
+                    //    //맨 윗부분 노드를 현재 노드로 설정함
+                    //    current = history.currentNode;
+                    //}
 
                     hidatoCount = current.data;
 
-                    if (HowManyExitStack == 1)
-                    {
-                        NextNode = FindNextNode(current);
-                        NextNodeHasUpdated = true;
-                    }
-                    else
-                    {
-                        NextNodeHasUpdated = false;
-                    }
-
-                    hidatoCount = current.data;
+                    //NextNode를 업데이트 함
+                    NextNode = FindNextNode(current);
 
                     #region 디버그를 편하게 하기 위해서 바로 업데이트 함
 #if DEBUG
@@ -1016,35 +1071,26 @@ namespace hidato_solver
                 if (current.data != 1)
                 {
 
-                    StackCount = 1;
-
+                    HidatoGrid.Node prevNode = history.getPrevNode(current);
                     current.WorkSapce = 0;
+                    current.emptyMarker();
 
-                    if (current == history.currentNode.node)
+                    //if (current == history.currentNode)
                     {
                         //맨 윗부분의 이전노드가 아니라 
-                        current = history.GetPrevElement().node;
+                        current = prevNode;
                     }
-                    else
-                    {
-                        //맨 윗부분 노드를 현재 노드로 설정함
-                        current = history.GetCurrentElement().node;
-                    }
+                    //else
+                    //{
+                    //    //맨 윗부분 노드를 현재 노드로 설정함
+                    //    current = history.currentNode;
+                    //}
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정함
 
                     hidatoCount = current.data;
 
-                    if (HowManyExitStack == 1)
-                    {
-                        NextNode = FindNextNode(current);
-                        NextNodeHasUpdated = true;
-                    }
-                    else
-                    {
-                        NextNodeHasUpdated = false;
-                    }
-
-                    hidatoCount = current.data;
+                    //NextNode를 업데이트 함
+                    NextNode = FindNextNode(current);
 
                     #region 디버그를 편하게 하기 위해서 바로 업데이트 함
 #if DEBUG
@@ -1069,46 +1115,37 @@ namespace hidato_solver
 
             }
 
-            if (marker.sizeOfnumSet() == 0)
+            if (current.marker.sizeOfnumSet() == 0)
             {
 
 
                 if (current.data != 1)
                 {
-                    StackCount = 1;
 
-                  
+
                     //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
+                    HidatoGrid.Node prevNode = history.getPrevNode(current);
                     current.WorkSapce = 0;
+                    current.emptyMarker();
 
-                    if (current == history.currentNode.node)
+                    //if (current == history.currentNode)
                     {
                         //맨 윗부분의 이전노드가 아니라 
-                        current = history.GetPrevElement().node;
+                        current = prevNode;
                     }
-                    else
-                    {
-                        //맨 윗부분 노드를 현재 노드로 설정함
-                        current = history.GetCurrentElement().node;
-                    }
+                    //else
+                    //{
+                    //    //맨 윗부분 노드를 현재 노드로 설정함
+                    //    current = history.currentNode;
+                    //}
 
                     //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                     hidatoCount = current.data;
 
-                    //빠져나가야 하는 스택 깊이가 1이면
-                    if (HowManyExitStack == 1)
-                    {
-                        //바로 NextNode를 업데이트 하고
-                        NextNode = FindNextNode(current);
-                        //NextNode가 업데이트 되었다는 표시를 함
-                        NextNodeHasUpdated = true;
-                    }
-                    else
-                    {
-                        //아니면 while문 끝나고 처리 하게 업데이트가 되지 않았다는 표시만 함
-                        NextNodeHasUpdated = false;
-                    }
-#region 디버그를 편하게 하기 위해서 바로 업데이트 함
+                    //NextNode를 업데이트 함
+                    NextNode = FindNextNode(current);
+
+                    #region 디버그를 편하게 하기 위해서 바로 업데이트 함
 #if DEBUG
                     if (ShowAllProcess == true)
                     {
@@ -1132,7 +1169,7 @@ namespace hidato_solver
             }
             #endregion
 
-            history.AddNode(current);
+            
 
             for (int i = 0; i < 8; i++)
             {
@@ -1144,7 +1181,7 @@ namespace hidato_solver
                 //    //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                 //    current.WorkSapce = 0;
 
-                //    current = history.GetPrevElement().node;
+                //    current = history.prevNode;
 
                 //    hidatoCount = current.WorkSapce;
 
@@ -1163,10 +1200,47 @@ namespace hidato_solver
 
                 for (int j = 0; j < 8; j++)
                 {
-                    if (marker.SurchMarker[insertNow.current] == true)
+                    if (current.marker.SurchMarker[insertNow.current] == true)
                     {
 
                         hidatoCount = current.data;
+                        //이미 탐색한 자리임으로 false마킹
+                        history.AddNode(current);
+
+                        #region 이미 탐색한 자리는 false로 마킹합니다. 
+                        if (insertNow.current == (int)side.N)
+                        {
+                            current.marker.SurchMarker[(int)side.N] = false;
+                        }
+                        else if (insertNow.current == (int)side.NE)
+                        {
+                            current.marker.SurchMarker[(int)side.NE] = false;
+                        }
+                        else if (insertNow.current == (int)side.E)
+                        {
+                            current.marker.SurchMarker[(int)side.E] = false;
+                        }
+                        else if (insertNow.current == (int)side.SE)
+                        {
+                            current.marker.SurchMarker[(int)side.SE] = false;
+                        }
+                        else if (insertNow.current == (int)side.S)
+                        {
+                            current.marker.SurchMarker[(int)side.S] = false;
+                        }
+                        else if (insertNow.current == (int)side.SW)
+                        {
+                            current.marker.SurchMarker[(int)side.SW] = false;
+                        }
+                        else if (insertNow.current == (int)side.W)
+                        {
+                            current.marker.SurchMarker[(int)side.W] = false;
+                        }
+                        else if (insertNow.current == (int)side.NW)
+                        {
+                            current.marker.SurchMarker[(int)side.NW] = false;
+                        }
+                        #endregion
 
                         #region current참조를 알맞은 위치로 옮기는 코드블럭 입니다.
                         if (insertNow.current == (int)side.N)
@@ -1210,43 +1284,7 @@ namespace hidato_solver
                         //history.AddNode(current);
                         //비어있는 칸이 1칸 줄어들기 때문에 1을 줄여야 합니다.
                         EmptyNodeCount--;
-                        //이미 탐색한 자리임으로 false마킹
-                        #region 이미 탐색한 자리는 false로 마킹합니다. 
-                        if (insertNow.current == (int)side.N)
-                        {
-                            marker.SurchMarker[(int)side.N] = false;
-                        }
-                        else if (insertNow.current == (int)side.NE)
-                        {
-                            marker.SurchMarker[(int)side.NE] = false;
-                        }
-                        else if (insertNow.current == (int)side.E)
-                        {
-                            marker.SurchMarker[(int)side.E] = false;
-                        }
-                        else if (insertNow.current == (int)side.SE)
-                        {
-                            marker.SurchMarker[(int)side.SE] = false;
-                        }
-                        else if (insertNow.current == (int)side.S)
-                        {
-                            marker.SurchMarker[(int)side.S] = false;
-                        }
-                        else if (insertNow.current == (int)side.SW)
-                        {
-                            marker.SurchMarker[(int)side.SW] = false;
-                        }
-                        else if (insertNow.current == (int)side.W)
-                        {
-                            marker.SurchMarker[(int)side.W] = false;
-                        }
-                        else if (insertNow.current == (int)side.NW)
-                        {
-                            marker.SurchMarker[(int)side.NW] = false;
-                        }
-                        #endregion
-
-
+                        
                         #region 디버그를 편하게 하기 위해서 바로 업데이트 함
 #if DEBUG
                         if (ShowAllProcess == true)
@@ -1277,26 +1315,28 @@ namespace hidato_solver
 
                     if (current.data != 1)
                     {
-                       
-                        //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
-                        current.WorkSapce = 0;
 
-                        if (current == history.currentNode.node)
+                        //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
+                        HidatoGrid.Node prevNode = history.getPrevNode(current);
+                        current.WorkSapce = 0;
+                        current.emptyMarker();
+
+                        //if (current == history.currentNode)
                         {
                             //맨 윗부분의 이전노드가 아니라 
-                            current = history.GetPrevElement().node;
+                            current = prevNode;
                         }
-                        else
-                        {
-                            //맨 윗부분 노드를 현재 노드로 설정함
-                            current = history.GetCurrentElement().node;
-                        }
+                        //else
+                        //{
+                        //    //맨 윗부분 노드를 현재 노드로 설정함
+                        //    current = history.currentNode;
+                        //}
 
                         //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                         hidatoCount = current.data;
 
                         NextNode = FindNextNode(current);
-
+                        
 
                         #region 디버그를 편하게 하기 위해서 바로 업데이트 함
 #if DEBUG
@@ -1314,6 +1354,7 @@ namespace hidato_solver
 
 #endif
                         #endregion
+                      
                         EmptyNodeCount++;
                         return false;
                     }
@@ -1359,7 +1400,7 @@ namespace hidato_solver
             //history.AddNode(current);
             NextNode = FindNextNode(current);
             InitList();
-            SmartSuch = true;
+            SmartSuch = false;
             EmptyNodeCount = maxval - HintCount();
 
             if (SmartSuch == true)
