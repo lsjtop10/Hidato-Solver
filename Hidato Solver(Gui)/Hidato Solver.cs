@@ -490,6 +490,8 @@ namespace hidato_solver
         /// 비어있는 칸 카운트
         /// </summary>
         private int EmptyNodeCount;
+        ulong HoWManyExit = 0;
+
 
         /// <summary>
         /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
@@ -796,7 +798,7 @@ namespace hidato_solver
             {
                 for (int j = 0; j < m_hidatoGrid.GridRlength; j++)
                 {
-                    if (m_hidatoGrid.GetNodeAt(i, j).Input > 0)
+                    if (m_hidatoGrid.GetNodeAt(i, j).data > 0)
                     {
                         HintCount++;
                     }
@@ -924,7 +926,12 @@ namespace hidato_solver
 
 
             current.marker = FindOption(current);
-            
+
+
+            //if (current.data == maxval - 1 && PrevNodeIsPossible == true)
+            //{
+            //    return true;
+            //}
 
             //비어있는 칸이 더 이상 없으면
             if (EmptyNodeCount == 0)
@@ -933,7 +940,7 @@ namespace hidato_solver
                 return true;
             }
 
-            
+
             ///현재 노드의 데이터가 다음 노드의 데이터보다 1이 작고, 다음 노드가 최대값이 아니면서
             #region 이전 노드의 유효성 검사
             if (current.data == NextNode.data - 1)
@@ -973,6 +980,11 @@ namespace hidato_solver
                         current.WorkSapce = 0;
                         current.emptyMarker();
 
+                        if (current.Input == 0)
+                        {
+                            EmptyNodeCount++;
+                        }
+
                         //if (current == history.currentNode)
                         {
                             //맨 윗부분의 이전노드가 아니라 
@@ -990,11 +1002,11 @@ namespace hidato_solver
                         //NextNode를 업데이트 함
                         NextNode = FindNextNode(current);
 
-                        EmptyNodeCount++;
+
 
 
                         #region 디버그를 편하게 하기 위해서 바로 업데이트 함
-#if DEBUG
+//#if DEBUG
                         if (ShowAllProcess == true)
                         {
                             RefBoard.UpdateTextBoxes();
@@ -1007,10 +1019,19 @@ namespace hidato_solver
                             DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
                         }
 
-#endif
+//#endif
                         #endregion
 
-                        
+
+#if DEBUG
+                        HoWManyExit++;
+                        Console.WriteLine("");
+                        Console.WriteLine("{0}", EmptyNodeCount);
+                        Console.WriteLine("{0}", maxval - HintCount());
+                        Console.WriteLine("{0}", HoWManyExit);
+
+#endif
+
                         return false;
                     }
                 }
@@ -1026,6 +1047,11 @@ namespace hidato_solver
                     HidatoGrid.Node prevNode = history.getPrevNode(current);
                     current.WorkSapce = 0;
                     current.emptyMarker();
+
+                    if (current.Input == 0)
+                    {
+                        EmptyNodeCount++;
+                    }
 
                     //if (current == history.currentNode)
                     {
@@ -1043,8 +1069,8 @@ namespace hidato_solver
                     //NextNode를 업데이트 함
                     NextNode = FindNextNode(current);
 
-                    #region 디버그를 편하게 하기 위해서 바로 업데이트 함
-#if DEBUG
+#region 디버그를 편하게 하기 위해서 바로 업데이트 함
+//#if DEBUG
                     if (ShowAllProcess == true)
                     {
                         RefBoard.UpdateTextBoxes();
@@ -1057,10 +1083,18 @@ namespace hidato_solver
                         DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
                     }
 
-#endif
-                    #endregion
+//#endif
+#endregion
 
-                    EmptyNodeCount++;
+                   
+//#if DEBUG
+//                    HoWManyExit++;
+//                    Console.WriteLine("");
+//                    Console.WriteLine("{0}", EmptyNodeCount);
+//                    Console.WriteLine("{0}", maxval - HintCount());
+//                    Console.WriteLine("{0}", HoWManyExit);
+//#endif
+
                     return false;
                 }
             }
@@ -1074,6 +1108,11 @@ namespace hidato_solver
                     HidatoGrid.Node prevNode = history.getPrevNode(current);
                     current.WorkSapce = 0;
                     current.emptyMarker();
+
+                    if (current.Input == 0)
+                    {
+                        EmptyNodeCount++;
+                    }
 
                     //if (current == history.currentNode)
                     {
@@ -1092,8 +1131,8 @@ namespace hidato_solver
                     //NextNode를 업데이트 함
                     NextNode = FindNextNode(current);
 
-                    #region 디버그를 편하게 하기 위해서 바로 업데이트 함
-#if DEBUG
+#region 디버그를 편하게 하기 위해서 바로 업데이트 함
+//#if DEBUG
                     if (ShowAllProcess == true)
                     {
                         RefBoard.UpdateTextBoxes();
@@ -1106,10 +1145,18 @@ namespace hidato_solver
                         DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
                     }
 
-#endif
-                    #endregion
+//#endif
+#endregion
+                    
 
-                    EmptyNodeCount++;
+//#if DEBUG
+//                    HoWManyExit++;
+//                    Console.WriteLine("");
+//                    Console.WriteLine("{0}", EmptyNodeCount);
+//                    Console.WriteLine("{0}", maxval - HintCount());
+//                    Console.WriteLine("{0}", HoWManyExit);
+//#endif
+
                     return false;
                 }
 
@@ -1128,6 +1175,11 @@ namespace hidato_solver
                     current.WorkSapce = 0;
                     current.emptyMarker();
 
+                    if (current.Input == 0)
+                    {
+                        EmptyNodeCount++;
+
+                    }
                     //if (current == history.currentNode)
                     {
                         //맨 윗부분의 이전노드가 아니라 
@@ -1145,8 +1197,8 @@ namespace hidato_solver
                     //NextNode를 업데이트 함
                     NextNode = FindNextNode(current);
 
-                    #region 디버그를 편하게 하기 위해서 바로 업데이트 함
-#if DEBUG
+#region 디버그를 편하게 하기 위해서 바로 업데이트 함
+//#if DEBUG
                     if (ShowAllProcess == true)
                     {
                         RefBoard.UpdateTextBoxes();
@@ -1159,21 +1211,27 @@ namespace hidato_solver
                         DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
                     }
 
-#endif
-                    #endregion
+//#endif
+#endregion
 
-                    EmptyNodeCount++;
+//#if DEBUG
+//                    HoWManyExit++;
+//                    Console.WriteLine("");
+//                    Console.WriteLine("{0}", EmptyNodeCount);
+//                    Console.WriteLine("{0}", maxval - HintCount());
+//                    Console.WriteLine("{0}", HoWManyExit);
+//#endif
+
                     return false;
                 }
 
             }
-            #endregion
+#endregion
 
             
-
             for (int i = 0; i < 8; i++)
             {
-                #region 가변 백트랙킹 기능 구현을 위한 코드
+#region 가변 백트랙킹 기능 구현을 위한 코드
                 //while (StackCount < HowManyExitStack)
                 //{
                 //    StackCount++;
@@ -1194,7 +1252,7 @@ namespace hidato_solver
                 //    NextNode = FindNextNode(current);
                 //    NextNodeHasUpdated = true;
                 //}
-                #endregion
+#endregion
 
                 bool InsertSuccess = false;
 
@@ -1207,7 +1265,7 @@ namespace hidato_solver
                         //이미 탐색한 자리임으로 false마킹
                         history.AddNode(current);
 
-                        #region 이미 탐색한 자리는 false로 마킹합니다. 
+#region 이미 탐색한 자리는 false로 마킹합니다. 
                         if (insertNow.current == (int)side.N)
                         {
                             current.marker.SurchMarker[(int)side.N] = false;
@@ -1240,9 +1298,9 @@ namespace hidato_solver
                         {
                             current.marker.SurchMarker[(int)side.NW] = false;
                         }
-                        #endregion
+#endregion
 
-                        #region current참조를 알맞은 위치로 옮기는 코드블럭 입니다.
+#region current참조를 알맞은 위치로 옮기는 코드블럭 입니다.
                         if (insertNow.current == (int)side.N)
                         {
                             current = current.N;
@@ -1275,7 +1333,7 @@ namespace hidato_solver
                         {
                             current = current.NW;
                         }
-                        #endregion
+#endregion
 
                         NodeOfHidatoGridList.Add(current);
 
@@ -1284,9 +1342,17 @@ namespace hidato_solver
                         //history.AddNode(current);
                         //비어있는 칸이 1칸 줄어들기 때문에 1을 줄여야 합니다.
                         EmptyNodeCount--;
-                        
-                        #region 디버그를 편하게 하기 위해서 바로 업데이트 함
-#if DEBUG
+//#if DEBUG
+//                        HoWManyExit++;
+//                        Console.WriteLine("");
+//                        Console.WriteLine("{0}", EmptyNodeCount);
+//                        Console.WriteLine("{0}", maxval - HintCount());
+//                        Console.WriteLine("{0}", HoWManyExit);
+//#endif
+
+
+#region 디버그를 편하게 하기 위해서 바로 업데이트 함
+//#if DEBUG
                         if (ShowAllProcess == true)
                         {
                             RefBoard.UpdateTextBoxes();
@@ -1299,8 +1365,8 @@ namespace hidato_solver
                             DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
                         }
 
-#endif
-                        #endregion
+//#endif
+#endregion
 
                         InsertSuccess = true;
 
@@ -1321,6 +1387,11 @@ namespace hidato_solver
                         current.WorkSapce = 0;
                         current.emptyMarker();
 
+                        if (current.Input == 0)
+                        {
+                            EmptyNodeCount++;
+                        }
+
                         //if (current == history.currentNode)
                         {
                             //맨 윗부분의 이전노드가 아니라 
@@ -1338,8 +1409,8 @@ namespace hidato_solver
                         NextNode = FindNextNode(current);
                         
 
-                        #region 디버그를 편하게 하기 위해서 바로 업데이트 함
-#if DEBUG
+#region 디버그를 편하게 하기 위해서 바로 업데이트 함
+//#if DEBUG
                         if (ShowAllProcess == true)
                         {
                             RefBoard.UpdateTextBoxes();
@@ -1352,10 +1423,17 @@ namespace hidato_solver
                             DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
                         }
 
-#endif
+//#endif
                         #endregion
-                      
-                        EmptyNodeCount++;
+
+//#if DEBUG
+//                        HoWManyExit++;
+//                        Console.WriteLine("");
+//                        Console.WriteLine("{0}", EmptyNodeCount);
+//                        Console.WriteLine("{0}", maxval - HintCount());
+//                        Console.WriteLine("{0}", HoWManyExit);
+
+//#endif
                         return false;
                     }
                     else
