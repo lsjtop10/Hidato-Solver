@@ -46,153 +46,6 @@ namespace hidato_solver
         }
     }
 
-    //class history
-    //{
-    //    private Node current;
-    //    private Node hard;
-
-    //    //구조체로 하면 에러가 난다 구조체는 참조 형식이 아니라 값 형식이기 때문
-    //    public class Node
-    //    {
-    //        public HidatoGrid.Node node;
-    //        public history.Node next;
-    //        public history.Node prev;
-
-    //    }
-
-    //    public history()
-    //    {
-    //        hard = new history.Node();
-    //        current = hard;
-    //    }
-
-    //    public history.Node GetPrevElement
-    //    {
-    //        get { return current; }
-    //    }
-
-    //    public void AddNode(HidatoGrid.Node node)
-    //    {
-    //        //while(current.next != null)
-    //        //{
-    //        //    current = current.next; 
-    //        //}
-
-    //        history.Node temp = new history.Node();
-    //        temp.node = node;
-    //        current.next = temp;
-    //        temp.prev = current;
-
-
-    //        current = current.next;
-    //    }
-
-    //    public history.Node GetCurrentElement()
-    //    {
-    //        Node temp = current;
-
-    //        if (current.node.data == 1)
-    //        {
-    //            return current;
-    //        }
-    //        //else
-    //        //{
-    //        //    current = current.prev;
-
-    //        //    current.next.prev = null;
-    //        //    current.next = null;
-    //        //}
-
-    //        return temp;
-    //    }
-
-    //    public history.Node prevNode
-    //    {
-
-    //        if (current.node.data == 1)
-    //        {
-    //            return current;
-    //        }
-    //        else
-    //        {
-    //            current = current.prev;
-    //            current.next.prev = null;
-    //            current.next = null;
-    //        }
-
-    //        return current;
-    //    }
-    //}
-
-
-    //hidato는 인접한 면에 자기숫자 +1만큼의 숫자가 들어가야 합니다. 
-    //그래서 주변의 인접한 면과 연결되야 하는데.저는 링크드 리스트(연결된 리스트)를 사용하겠습니다.
-    //연결된 리스트는 추적을 위한 hard값과 나머지node 를 서로 참조(원래는 포인터를 이용합니다.)즉 가리키게 해서
-    //묶어놓는 방식입니다. 지금은 8개의 면과 대응되야 하기 때문에 8개의 변수를 만들겠습니다.
-    //node의 삽입과 삭제는 필요가 없기 때문에 (처음에 판만 만들면 되므로) 삭제는 구현에서 생략합니다.
-
-    //class history
-    //{
-    //    private List<HidatoGrid.Node> m_history = new List<HidatoGrid.Node>();
-
-    //    public void AddNode(HidatoGrid.Node node)
-    //    {
-    //        this.m_history.Add(node);
-    //        m_history.Sort(delegate (HidatoGrid.Node c1, HidatoGrid.Node c2) { return c1.data.CompareTo(c2.data); });
-    //    }
-
-    //    public HidatoGrid.Node currentNode
-    //    {
-    //        get {
-    //                if (m_history.Count == 0)
-    //                {
-    //                    return m_history[0];
-    //                }
-    //                else
-    //                {
-    //                    return m_history[m_history.Count - 1];
-    //                }
-    //            }
-    //    }
-
-    //    //public HidatoGrid.Node prevNode
-    //    //{
-    //    //    get
-    //    //    {
-    //    //        m_history.RemoveAt(m_history.Count - 1);
-    //    //        return currentNode;
-    //    //    }
-    //    //}
-
-    //    public HidatoGrid.Node getPrevNode(HidatoGrid.Node current)
-    //    {
-    //        int cost = current.data;
-    //        HidatoGrid.Node MinCostNode = null;
-    //        for(int i = 0; i < m_history.Count; i++)
-    //        {
-    //            int CurrentCost;
-    //            HidatoGrid.Node CurrentNode = m_history[i];
-
-    //            CurrentCost = current.data - CurrentNode.data;
-
-    //            if(CurrentCost < cost)
-    //            {
-    //                cost = CurrentCost;
-    //                MinCostNode = CurrentNode;
-    //            }
-
-    //            if(CurrentCost <= 0)
-    //            {
-    //                break;
-    //            }
-
-    //        }
-
-    //        m_history.Remove(MinCostNode);
-    //        return MinCostNode;
-    //    }
-    //}
-
     class HidatoGrid
     {
         private Node hard = null;
@@ -235,6 +88,8 @@ namespace hidato_solver
             public Node SW;
             public Node W;
             public Node NW;
+
+            public bool EverVisitThis;
 
             public SurchMarking marker;
 
@@ -441,6 +296,8 @@ namespace hidato_solver
             return disableCount;
         }
 
+
+
     }
 
 
@@ -508,8 +365,10 @@ namespace hidato_solver
         /// 비어있는 칸 카운트
         /// </summary>
         private int EmptyNodeCount;
-        ulong HoWManyExit = 0;
 
+#if DEBUG
+        ulong HoWManyCallSolveFunc = 0;
+#endif
 
         /// <summary>
         /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
@@ -880,7 +739,7 @@ namespace hidato_solver
                     break;
                 }
 
-                if (CurrentCost < cost)
+                if (CurrentCost < cost && CurrentNode.EverVisitThis == true)
                 {
                     cost = CurrentCost;
                     MinCostNode = CurrentNode;
@@ -911,7 +770,7 @@ namespace hidato_solver
         {
             for (int i = 0; i < current.Length; i++)
             {
-                Console.WriteLine(current[i].data.ToString());
+                Console.WriteLine((current[i].EverVisitThis).ToString() + " " + current[i].data.ToString());
             }
         }
 
@@ -927,6 +786,7 @@ namespace hidato_solver
             //디버그와 릴리즈를 구분하나?
 #if DEBUG
             int CurrentData = current.data;
+            HoWManyCallSolveFunc++;
 #endif
 
 
@@ -935,43 +795,23 @@ namespace hidato_solver
                 return true;
             }
 
-            //if (ShowAllProcess == true)
-            //{
-            //    RefBoard.UpdateTextBoxes();
-            //    DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
-            //    Thread.Sleep(ProcessWaitTime);
-            //}
-            //else if (DateTime.Now > DTNextUpdate)
-            //{
-            //    RefBoard.UpdateTextBoxes();
-            //    DTNextUpdate = DateTime.Now.AddSeconds(NextUpdateSoconds);
-            //}
-
-            //SmartSuch옵션이 켜져 있으면
-            //if (SmartSuch == true)
-            //{
-            //    //가장 작은 경우의 수를 가지는 구간의 시작 노드를 현재 노드로 설정하고 그 다음 노드(구간의 끝 노드)를TargetNode변수에 저장
-            //    current = FindMinPossibe();
-            //   TargetNode = FindNextNode(current);
-            //}
 
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
 
-            current.marker = FindOption(current);
 
 
-            if (current.data == maxval - 1 && PrevNodeIsPossible == true)
-            {
-                return true;
-            }
-
-            //비어있는 칸이 더 이상 없으면
-            //if (EmptyNodeCount == 0)
+            //if (current.data == maxval - 1 && PrevNodeIsPossible == true)
             //{
-            //    //풀린것
             //    return true;
             //}
+
+            //비어있는 칸이 더 이상 없으면
+            if (EmptyNodeCount == 0)
+            {
+                //풀린것
+                return true;
+            }
 
 
             ///현재 노드의 데이터가 다음 노드의 데이터보다 1이 작고, 다음 노드가 최대값이 아니면서
@@ -981,6 +821,7 @@ namespace hidato_solver
                 ///바로 이전 노드가 올바르면(붙어 있으면)
                 if (PrevNodeIsPossible == true)
                 {
+                    current.EverVisitThis = true;
 
 
                     if (SmartSuch == true)
@@ -1001,7 +842,7 @@ namespace hidato_solver
                                 //현재노드의 작업 공간(worksace)를 0으로 설정하고,(변경사항 없음 이라고 표시) 바로 이전 노드로 되돌림
                                 HidatoGrid.Node prevNode = getPrevNode(current);
                                 current.WorkSapce = 0;
-                                current.emptyMarker();
+                                current.EverVisitThis = false;
 
                                 if (current.Input == 0)
                                 {
@@ -1018,6 +859,7 @@ namespace hidato_solver
                                 //맨 윗부분 노드를 현재 노드로 설정함
                                 //current = history.currentNode;
                                 //}
+
 
                                 //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                                 hidatoCount = current.data;
@@ -1072,7 +914,8 @@ namespace hidato_solver
                         //현재노드의 작업 공간(worksace)를 0으로 설정하고,(변경사항 없음 이라고 표시) 바로 이전 노드로 되돌림
                         HidatoGrid.Node prevNode = getPrevNode(current);
                         current.WorkSapce = 0;
-                        current.emptyMarker();
+                        current.EverVisitThis = false;
+                        //current.emptyMarker();
 
                         if (current.Input == 0)
                         {
@@ -1122,6 +965,8 @@ namespace hidato_solver
                 }
             }
 
+            current.marker = FindOption(current);
+
             if (current.data == TargetNode.data - 1 && PrevNodeIsPossible == false)
             {
 
@@ -1131,6 +976,7 @@ namespace hidato_solver
                     //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                     HidatoGrid.Node prevNode = getPrevNode(current);
                     current.WorkSapce = 0;
+                    current.EverVisitThis = false;
                     current.emptyMarker();
 
                     if (current.Input == 0)
@@ -1184,6 +1030,7 @@ namespace hidato_solver
 
                     HidatoGrid.Node prevNode = getPrevNode(current);
                     current.WorkSapce = 0;
+                    current.EverVisitThis = false;
                     current.emptyMarker();
 
                     if (current.Input == 0)
@@ -1241,6 +1088,7 @@ namespace hidato_solver
                     //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                     HidatoGrid.Node prevNode = getPrevNode(current);
                     current.WorkSapce = 0;
+                    current.EverVisitThis = false;
                     current.emptyMarker();
 
                     if (current.Input == 0)
@@ -1308,6 +1156,7 @@ namespace hidato_solver
                     if (current.marker.SurchMarker[insertNow.current] == true)
                     {
 
+                        current.EverVisitThis = true;
                         hidatoCount = current.data;
                         //이미 탐색한 자리임으로 false마킹
 
@@ -1383,7 +1232,6 @@ namespace hidato_solver
 
                         hidatoCount++;
                         current.WorkSapce = hidatoCount;
-                        //history.AddNode(current);
                         //비어있는 칸이 1칸 줄어들기 때문에 1을 줄여야 합니다.
                         EmptyNodeCount--;
 
@@ -1421,6 +1269,7 @@ namespace hidato_solver
                         //아니면, 현재노드의 데이터를 0으로 설정하고,(비워놓음) 바로 이전 노드로 되돌림
                         HidatoGrid.Node prevNode = getPrevNode(current);
                         current.WorkSapce = 0;
+                        current.EverVisitThis = false;
                         current.emptyMarker();
 
                         if (current.Input == 0)
@@ -1505,7 +1354,7 @@ namespace hidato_solver
             //history.AddNode(current);
             TargetNode = FindNextTargetNode(current);
             InitArray();
-            SmartSuch = false;
+            SmartSuch = true;
             EmptyNodeCount = maxval - m_hidatoGrid.HintCount();
 
             if (SmartSuch == true)
