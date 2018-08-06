@@ -189,6 +189,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "OptionDig";
             this.Text = "Hidato Board - Option";
+            this.Load += new System.EventHandler(this.OptionDig_Load);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OptionDig_MouseDown);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

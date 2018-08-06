@@ -24,10 +24,10 @@ namespace Hidato_Solver_Gui_
 
             if (HidatoSolver.ShowAllProcess == true)
             {
-                if(!(HidatoSolver.ProcessWaitTime == 0))
+                if (!(HidatoSolver.ProcessWaitTime == 0))
                 {
                     checkBox1.Checked = true;
-                    
+
                 }
 
                 checkBox1.Enabled = true;
@@ -59,9 +59,9 @@ namespace Hidato_Solver_Gui_
             if (radioButton1.Checked)
             {
                 HidatoSolver.ShowAllProcess = true;
-                if(checkBox1.Checked)
+                if (checkBox1.Checked)
                 {
-                    if(textBox1.Text == "")
+                    if (textBox1.Text == "")
                     {
                         checkBox1.Enabled = false;
                         textBox1.Enabled = false;
@@ -80,11 +80,11 @@ namespace Hidato_Solver_Gui_
                     HidatoSolver.ProcessWaitTime = 0;
                 }
             }
-            else if(radioButton2.Checked)
+            else if (radioButton2.Checked)
             {
                 HidatoSolver.ShowAllProcess = false;
-                
-                if(textBox2.Text == "")
+
+                if (textBox2.Text == "")
                 {
                     MessageBox.Show("Error: Insert Value");
                     return;
@@ -95,11 +95,11 @@ namespace Hidato_Solver_Gui_
                     HidatoSolver.NextUpdateSoconds = int.Parse(textBox2.Text);
                 }
             }
-            if((Button)sender == OkButton)
+            if ((Button)sender == OkButton)
             {
                 Close();
             }
-           
+
         }
 
         private void ApplyButton_Click(object sender, EventArgs e)
@@ -126,7 +126,7 @@ namespace Hidato_Solver_Gui_
         private void OptionDig_MouseDown(object sender, MouseEventArgs e)
         {
 
-            
+
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -160,7 +160,10 @@ namespace Hidato_Solver_Gui_
 
         }
 
-       
+        private void OptionDig_Load(object sender, EventArgs e)
+        {
+
+        }
     }
-    
+
 }

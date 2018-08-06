@@ -368,6 +368,7 @@ namespace hidato_solver
 
 #if DEBUG
         ulong HoWManyCallSolveFunc = 0;
+        List<int> history = new List<int>();
 #endif
 
         /// <summary>
@@ -770,7 +771,16 @@ namespace hidato_solver
         {
             for (int i = 0; i < current.Length; i++)
             {
-                Console.WriteLine((current[i].EverVisitThis).ToString() + " " + current[i].data.ToString());
+                string OutPut = current[i].data.ToString() + " " + current[i].EverVisitThis + " " + (current[i].marker != null).ToString();
+                Console.WriteLine(OutPut);
+            }
+        }
+
+        public void ShowArray<T>(T[] obj)
+        {
+            for (int i = 0; i < obj.Length; i++)
+            {
+                Console.WriteLine(obj[i].ToString());
             }
         }
 
@@ -1155,10 +1165,15 @@ namespace hidato_solver
                 {
                     if (current.marker.SurchMarker[insertNow.current] == true)
                     {
-
+                        
                         current.EverVisitThis = true;
                         hidatoCount = current.data;
                         //이미 탐색한 자리임으로 false마킹
+
+#if DEBUG
+                        history.Add(current.data);
+#endif
+
 
                         #region 이미 탐색한 자리는 false로 마킹합니다. 
                         if (insertNow.current == (int)side.N)
@@ -1234,6 +1249,7 @@ namespace hidato_solver
                         current.WorkSapce = hidatoCount;
                         //비어있는 칸이 1칸 줄어들기 때문에 1을 줄여야 합니다.
                         EmptyNodeCount--;
+
 
                         #region 디버그를 편하게 하기 위해서 바로 업데이트 함
                         //#if DEBUG
@@ -1343,6 +1359,10 @@ namespace hidato_solver
             return false;
         }
 
+        /// <summary>
+        /// 풀이 시작하기 전 값 초기화
+        /// </summary>
+        /// <param name="board"></param>
         public void startsolve(Hidato_Board board)
         {
 
@@ -1360,6 +1380,8 @@ namespace hidato_solver
             if (SmartSuch == true)
             {
                 current = FindMinPossibe();
+
+                TargetNode = FindNextTargetNode(current);
             }
 
             RefBoard = board;
