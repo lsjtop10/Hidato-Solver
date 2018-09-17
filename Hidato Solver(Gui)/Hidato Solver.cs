@@ -1342,14 +1342,6 @@ namespace hidato_solver
                         //history.AddNode(current);
                         //비어있는 칸이 1칸 줄어들기 때문에 1을 줄여야 합니다.
                         EmptyNodeCount--;
-//#if DEBUG
-//                        HoWManyExit++;
-//                        Console.WriteLine("");
-//                        Console.WriteLine("{0}", EmptyNodeCount);
-//                        Console.WriteLine("{0}", maxval - HintCount());
-//                        Console.WriteLine("{0}", HoWManyExit);
-//#endif
-
 
 #region 디버그를 편하게 하기 위해서 바로 업데이트 함
 //#if DEBUG
@@ -1425,15 +1417,6 @@ namespace hidato_solver
 
 //#endif
                         #endregion
-
-//#if DEBUG
-//                        HoWManyExit++;
-//                        Console.WriteLine("");
-//                        Console.WriteLine("{0}", EmptyNodeCount);
-//                        Console.WriteLine("{0}", maxval - HintCount());
-//                        Console.WriteLine("{0}", HoWManyExit);
-
-//#endif
                         return false;
                     }
                     else
