@@ -46,6 +46,153 @@ namespace hidato_solver
         }
     }
 
+    //class history
+    //{
+    //    private Node current;
+    //    private Node hard;
+
+    //    //구조체로 하면 에러가 난다 구조체는 참조 형식이 아니라 값 형식이기 때문
+    //    public class Node
+    //    {
+    //        public HidatoGrid.Node node;
+    //        public history.Node next;
+    //        public history.Node prev;
+
+    //    }
+
+    //    public history()
+    //    {
+    //        hard = new history.Node();
+    //        current = hard;
+    //    }
+
+    //    public history.Node GetPrevElement
+    //    {
+    //        get { return current; }
+    //    }
+
+    //    public void AddNode(HidatoGrid.Node node)
+    //    {
+    //        //while(current.next != null)
+    //        //{
+    //        //    current = current.next; 
+    //        //}
+
+    //        history.Node temp = new history.Node();
+    //        temp.node = node;
+    //        current.next = temp;
+    //        temp.prev = current;
+
+
+    //        current = current.next;
+    //    }
+
+    //    public history.Node GetCurrentElement()
+    //    {
+    //        Node temp = current;
+
+    //        if (current.node.data == 1)
+    //        {
+    //            return current;
+    //        }
+    //        //else
+    //        //{
+    //        //    current = current.prev;
+
+    //        //    current.next.prev = null;
+    //        //    current.next = null;
+    //        //}
+
+    //        return temp;
+    //    }
+
+    //    public history.Node prevNode
+    //    {
+
+    //        if (current.node.data == 1)
+    //        {
+    //            return current;
+    //        }
+    //        else
+    //        {
+    //            current = current.prev;
+    //            current.next.prev = null;
+    //            current.next = null;
+    //        }
+
+    //        return current;
+    //    }
+    //}
+
+
+    //hidato는 인접한 면에 자기숫자 +1만큼의 숫자가 들어가야 합니다. 
+    //그래서 주변의 인접한 면과 연결되야 하는데.저는 링크드 리스트(연결된 리스트)를 사용하겠습니다.
+    //연결된 리스트는 추적을 위한 hard값과 나머지node 를 서로 참조(원래는 포인터를 이용합니다.)즉 가리키게 해서
+    //묶어놓는 방식입니다. 지금은 8개의 면과 대응되야 하기 때문에 8개의 변수를 만들겠습니다.
+    //node의 삽입과 삭제는 필요가 없기 때문에 (처음에 판만 만들면 되므로) 삭제는 구현에서 생략합니다.
+
+    class history
+    {
+        private List<HidatoGrid.Node> m_history = new List<HidatoGrid.Node>();
+
+        public void AddNode(HidatoGrid.Node node)
+        {
+            this.m_history.Add(node);
+            m_history.Sort(delegate (HidatoGrid.Node c1, HidatoGrid.Node c2) { return c1.data.CompareTo(c2.data); });
+        }
+
+        public HidatoGrid.Node currentNode
+        {
+            get {
+                    if (m_history.Count == 0)
+                    {
+                        return m_history[0];
+                    }
+                    else
+                    {
+                        return m_history[m_history.Count - 1];
+                    }
+                }
+        }
+
+        //public HidatoGrid.Node prevNode
+        //{
+        //    get
+        //    {
+        //        m_history.RemoveAt(m_history.Count - 1);
+        //        return currentNode;
+        //    }
+        //}
+
+        public HidatoGrid.Node getPrevNode(HidatoGrid.Node current)
+        {
+            int cost = current.data;
+            HidatoGrid.Node MinCostNode = null;
+            for(int i = 0; i < m_history.Count; i++)
+            {
+                int CurrentCost;
+                HidatoGrid.Node CurrentNode = m_history[i];
+
+                CurrentCost = current.data - CurrentNode.data;
+
+                if(CurrentCost < cost)
+                {
+                    cost = CurrentCost;
+                    MinCostNode = CurrentNode;
+                }
+
+                if(CurrentCost <= 0)
+                {
+                    break;
+                }
+
+            }
+
+            m_history.Remove(MinCostNode);
+            return MinCostNode;
+        }
+    }
+
     class HidatoGrid
     {
         private Node hard = null;
