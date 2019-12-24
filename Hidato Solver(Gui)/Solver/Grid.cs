@@ -9,45 +9,48 @@ namespace hidato_solver
     class HidatoGrid
     {
         int[,] Grid;
-        private Node hard = null;
-        private int m_Rlength;
-        private int m_Clength;
+
+
+        private int m_verticalLn; 
+        private int m_horizontalLn;
+
 
         //-1로 되어 있는 칸의 개수
         //private int m_Disable;
         public int Disable;
 
-        public HidatoGrid(int Cols, int Rows)
+        public HidatoGrid(int HorizontalLn, int VerticalLn) 
         {
-            m_Clength = Cols;
-            m_Rlength = Rows;
-            GenerateGrid(Cols, Rows);
+            Grid = new int[HorizontalLn, VerticalLn];
+            m_horizontalLn = HorizontalLn;
+            m_verticalLn = VerticalLn;
         }
 
-        public int GridRlength
+        /// <summary>
+        /// 세로 길이 
+        /// </summary>
+        public int GridVerticalLn
         {
-            get { return m_Rlength; }
+            get { return m_verticalLn; }
+
         }
 
-        public int GridClength
+        /// <summary>
+        /// 가로 길이
+        /// </summary>
+        public int GridHorizontalLn
         {
-            get { return m_Clength; }
-        }
-
-        public class Node
-        {
-            
-
+            get { return m_horizontalLn; }
         }
 
         public int HintCount()
         {
             int HintCount = 0;
-            for (int i = 0; i < GridClength; i++)
+            for (int i = 0; i < GridHorizontalLn; i++)
             {
-                for (int j = 0; j < GridRlength; j++)
+                for (int j = 0; j < GridVerticalLn; j++)
                 {
-                    if (GetNodeAt(i, j).data > 0)
+                    if (GetDataAt(i, j) > 0)
                     {
                         HintCount++;
                     }
@@ -57,17 +60,9 @@ namespace hidato_solver
             return HintCount;
         }
 
-
-        public void GenerateGrid(int CLength, int RLength)
+        public int GetDataAt(int X, int Y)
         {
-            Grid = new int[CLength, RLength];
-            m_Clength = CLength;
-            m_Rlength = RLength;
-        }
-
-        public int GetDataAt(int Yindex, int Xindex)
-        {
-            return Grid[Xindex, Yindex];
+            return Grid[X, Y];
         }
 
         public int GetDataAt(Coordinate coordinate)
@@ -75,9 +70,9 @@ namespace hidato_solver
             return Grid[coordinate.X, coordinate.Y];
         }
 
-        public void InputAt(int Yindex, int Xindex, int data)
+        public void InputAt(int X, int Y, int data)
         {
-            Grid[Yindex, Xindex] = data;
+            Grid[X, Y] = data;
         }
 
         public void InputAt(Coordinate coordinate, int data)
@@ -90,9 +85,9 @@ namespace hidato_solver
         {
             Disable = 0;
             int disableCount = 0;
-            for (int i = 0; i < GridClength; i++)
+            for (int i = 0; i < GridHorizontalLn; i++)
             {
-                for (int j = 0; j < GridRlength; j++)
+                for (int j = 0; j < GridVerticalLn; j++)
                 {
                     if (GetDataAt(i, j) == -1)
                     {
@@ -105,7 +100,20 @@ namespace hidato_solver
             return disableCount;
         }
 
-
+        public void Show()
+        {
+            int data = 0;
+            for(int i = 0; i <  GridVerticalLn; i++)
+            {
+                for(int j = 0; j < m_horizontalLn; j++)
+                {
+                    data = Grid[j ,i];
+                    Console.Write(data);
+                    Console.Write(" ");
+                }
+                Console.WriteLine();
+            }
+        }
 
     }
     class Coordinate 
@@ -157,5 +165,6 @@ namespace hidato_solver
 
             return current;
         }
+
     }
 }

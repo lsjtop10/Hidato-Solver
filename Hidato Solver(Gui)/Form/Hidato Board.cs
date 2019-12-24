@@ -40,31 +40,31 @@ namespace Hidato_Solver_Gui_
         private const int RightMargin = 12; //오른쪽 여백
         private const int BottomMargin = 60; //아랫쪽 여백
 
-        public Hidato_Board(int nCols, int nRows)
+        public Hidato_Board(int HorizontalLn, int verticalLn)
         {
             InitializeComponent();
-            InitializeArrays(nCols, nRows);
+            InitializeArrays(HorizontalLn, verticalLn);
             //ClearArrays();
         }
 
         public Hidato_Board(TextReader sr)
         {
-            int col, row = 0;
+            int horizontalLn, verticalLn = 0;
 
             InitializeComponent();
 
-            col = int.Parse(sr.ReadLine());
-            row = int.Parse(sr.ReadLine());
+            horizontalLn = int.Parse(sr.ReadLine());
+            verticalLn = int.Parse(sr.ReadLine());
 
-            InitializeArrays(col, row);
+            InitializeArrays(horizontalLn, verticalLn);
 
             string s;
 
-            for (int i = 0; i < col; i++)
+            for (int i = 0; i < horizontalLn; i++)
             {
                 s = sr.ReadLine();
                 string[] sa = s.Split(' ');
-                for (int j = 0; j < row; j++)
+                for (int j = 0; j < verticalLn; j++)
                 {
                     hidatoGrid.InputAt(i, j, int.Parse(sa[j]));
                 }
@@ -78,30 +78,30 @@ namespace Hidato_Solver_Gui_
             
         //}
 
-        private void InitializeArrays(int nCols, int nRows)
+        private void InitializeArrays(int horizontalLn, int verticalLn)
         {
-            hidatoGrid = new HidatoGrid(nCols, nRows);
+            hidatoGrid = new HidatoGrid(horizontalLn, verticalLn);
             hidato_solver = new HidatoSolver(hidatoGrid);
-            displayed = new TextBox[nCols, nRows];
+            displayed = new TextBox[horizontalLn, verticalLn];
 
-            for (int i = 0; i < nCols; i++)
+            for (int i = 0; i < horizontalLn; i++)
             {
-                for (int j = 0; j < nRows; j++)
+                for (int j = 0; j < verticalLn; j++)
                 {
                     displayed[i, j] = new TextBox();
                     displayed[i, j].Parent = this;
-                    displayed[i, j].Location = new Point(j * ColumnSpacing + LeftMargin, i * RowSpacing + TopMargin);
+                    displayed[i, j].Location = new Point(i * ColumnSpacing + LeftMargin, j * RowSpacing + TopMargin);
                     displayed[i, j].Size = new Size(ColumnWidth, RowHeight);
                     displayed[i, j].Visible = true;
                     displayed[i, j].TextChanged += new EventHandler(HidatoBoard_TextChanged);
                 }
             }
 
-            this.Size = new Size(nRows * ColumnSpacing + LeftMargin + RightMargin, nCols * RowSpacing + TopMargin + BottomMargin);
+            this.Size = new Size(horizontalLn * ColumnSpacing + LeftMargin + RightMargin, verticalLn * RowSpacing + TopMargin + BottomMargin);
 
-            int xPosSolve = (this.Size.Width - buttonSolve.Size.Width - button1.Size.Width - ColumnSpacing) / 2;
-            buttonSolve.Location = new Point(xPosSolve, nCols * RowSpacing + TopMargin);
-            button1.Location = new Point(xPosSolve + buttonSolve.Size.Width + ColumnSpacing, nRows * RowSpacing + TopMargin);
+            int xPosSolve = (this.Size.Width - buttonSolve.Size.Width - button1.Size.Width - RowSpacing) / 2;
+            buttonSolve.Location = new Point(xPosSolve, verticalLn * RowSpacing + TopMargin);
+            button1.Location = new Point(xPosSolve + buttonSolve.Size.Width + ColumnSpacing, verticalLn * RowSpacing + TopMargin);
         }
 
         private void HidatoBoard_TextChanged(object sender, EventArgs e)
@@ -109,8 +109,8 @@ namespace Hidato_Solver_Gui_
             TextBox tb = (TextBox)sender;
             string s = tb.Text;
             // determine which row,col we are in
-            int nCol = (tb.Location.Y - TopMargin) / RowSpacing;
-            int nRow = (tb.Location.X - LeftMargin) / ColumnSpacing;
+            int nRow = (tb.Location.Y - TopMargin) / RowSpacing;
+            int nCol = (tb.Location.X - LeftMargin) / ColumnSpacing;
 
             int data = 0;
             try
@@ -131,14 +131,14 @@ namespace Hidato_Solver_Gui_
                 hidatoGrid.Disable--;
             }
 
-            if (data > hidatoGrid.GridClength * hidatoGrid.GridRlength - hidatoGrid.Disable)
+            if (data > hidatoGrid.GridHorizontalLn * hidatoGrid.GridVerticalLn - hidatoGrid.Disable)
             {
                 tb.BackColor = Color.Red;
                 tb.ForeColor = Color.Black;
 
                 ///Node의 Input은 풀기 전 초기 값만 들어갸야 함으로 풀이가 진행중인 동안에 TaxtBox안에 Taxt가 바뀌면 Input에 들어가면 안 되기 때문에 
                 ///풀이가 진행중인 경우에는 InputAt함수를 호출하지 않습니다.
-                if (!hidato_solver.IsProcess)
+                if (!HidatoSolver.IsProcess)
                 {
                     hidatoGrid.InputAt(nCol, nRow, data);
                 }
@@ -148,7 +148,7 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.Black;
                 tb.ForeColor = Color.White;
 
-                if (hidato_solver.IsProcess == false)
+                if (HidatoSolver.IsProcess == false)
                 {
                     hidatoGrid.InputAt(nCol, nRow, data);
                 }
@@ -159,10 +159,10 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.LightGreen;
                 tb.ForeColor = Color.Black;
 
-                if (hidato_solver.IsProcess == false)
-                {
-                    hidatoGrid.InputAt(nCol, nRow, data);
-                }
+                //if (HidatoSolver.IsProcess == false)
+                //{
+                //    hidatoGrid.InputAt(nCol, nRow, data);
+                //}
 
             }
             else if (tb.TextLength == 0 || data == 0)
@@ -170,7 +170,7 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.White;
                 tb.ForeColor = Color.Black;
 
-                if (hidato_solver.IsProcess == false)
+                if (HidatoSolver.IsProcess == false)
                 {
                     hidatoGrid.InputAt(nCol, nRow, data);
                 }
@@ -199,9 +199,9 @@ namespace Hidato_Solver_Gui_
             }
             else
             {
-                for (int i = 0; i < hidatoGrid.GridClength; i++)
+                for (int i = 0; i < hidatoGrid.GridHorizontalLn; i++)
                 {
-                    for (int j = 0; j < hidatoGrid.GridRlength; j++)
+                    for (int j = 0; j < hidatoGrid.GridVerticalLn; j++)
                     {
                         //해당 칸에 들어있는 숫자가 0이면
                         int data = hidatoGrid.GetDataAt(i, j);
@@ -224,9 +224,9 @@ namespace Hidato_Solver_Gui_
 
         private void ClearArrays()
         {
-            for (int i = 0; i < hidatoGrid.GridClength; i++)
+            for (int i = 0; i < hidatoGrid.GridHorizontalLn; i++)
             {
-                for (int j = 0; j < hidatoGrid.GridRlength; j++)
+                for (int j = 0; j < hidatoGrid.GridVerticalLn; j++)
                 {
                     hidatoGrid.InputAt(i, j, 0);
                 }
@@ -238,7 +238,7 @@ namespace Hidato_Solver_Gui_
         private void buttonSolve_Click(object sender, EventArgs e)
         {
             //문제를 푸는데 성공하면
-            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.startsolve(this)));
+            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.Startsolve(hidatoGrid)));
 
             task1.Start();
         }
@@ -247,7 +247,7 @@ namespace Hidato_Solver_Gui_
         /// 사용자에게 해당 작업을 성공했는지(t),실패(f) 여부를 매시지 박스로 출력해 줍니다.
         /// 걸린 시간을 표시하기 위해 해당 작업이 시작되기 시작한 시각을 매개 변수로 받습니다.
         /// </summary>
-        /// <param name="success"></param>
+        /// <param name="success" ></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
         public void ShowSFdialog(bool success, DateTime start)
@@ -280,13 +280,13 @@ namespace Hidato_Solver_Gui_
                 Stream stream = dlg.OpenFile();
                 StreamWriter sw = new StreamWriter(stream);
 
-                sw.WriteLine(hidatoGrid.GridClength.ToString());
-                sw.WriteLine(hidatoGrid.GridRlength.ToString());
+                sw.WriteLine(hidatoGrid.GridHorizontalLn.ToString());
+                sw.WriteLine(hidatoGrid.GridVerticalLn.ToString());
 
-                for (int i = 0; i < hidatoGrid.GridClength; i++)
+                for (int i = 0; i < hidatoGrid.GridHorizontalLn; i++)
                 {
                     string str = null;
-                    for (int j = 0; j < hidatoGrid.GridRlength; j++)
+                    for (int j = 0; j < hidatoGrid.GridVerticalLn; j++)
                     {
                         str = str + hidatoGrid.GetDataAt(i, j).ToString() + " ";
                     }

@@ -22,11 +22,11 @@ namespace Hidato_Solver_Gui_
 
         private void button1_Click(object sender, EventArgs e)
         {
-            int nRows, nCols;
+            int horizontalLn, verticalLn;
             try
             {
-                nRows = int.Parse(textBox1.Text);
-                nCols = int.Parse(textBox2.Text);
+                horizontalLn = int.Parse(Horizontal.Text);
+                verticalLn = int.Parse(Vertical.Text);
             }
             catch (FormatException)
             {
@@ -39,8 +39,10 @@ namespace Hidato_Solver_Gui_
                 return;
             }
 
-            Hidato_Board board = new Hidato_Board(nCols, nRows);
+            Hidato_Board board = new Hidato_Board(horizontalLn, verticalLn);
+#if DEBUG
             board.Show();
+#endif
         }
 
         private void buttonBrowse_Click(object sender, EventArgs e)
@@ -102,6 +104,31 @@ namespace Hidato_Solver_Gui_
         }
 
         private void groupBox2_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
         {
 
         }
