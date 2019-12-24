@@ -8,12 +8,12 @@ namespace hidato_solver
 {
     class HidatoGrid
     {
-        int[,] Grid;
         private Node hard = null;
+
         private int m_Rlength;
         private int m_Clength;
 
-        //-1로 되어 있는 칸의 개수
+        //-1로 되어 있는 칸의 갯수
         //private int m_Disable;
         public int Disable;
 
@@ -60,30 +60,20 @@ namespace hidato_solver
 
         public void GenerateGrid(int CLength, int RLength)
         {
-            Grid = new int[CLength, RLength];
-            m_Clength = CLength;
-            m_Rlength = RLength;
+           
         }
 
         public int GetDataAt(int Yindex, int Xindex)
         {
-            return Grid[Xindex, Yindex];
-        }
 
-        public int GetDataAt(Coordinate coordinate)
-        {
-            return Grid[coordinate.X, coordinate.Y];
         }
 
         public void InputAt(int Yindex, int Xindex, int data)
         {
-            Grid[Yindex, Xindex] = data;
         }
 
-        public void InputAt(Coordinate coordinate, int data)
+        public int GetDataAt(int Yindex, int Xindex)
         {
-            Grid[coordinate.X, coordinate.Y] = data;
-
         }
 
         public int DisableBoxesCount()
@@ -107,55 +97,5 @@ namespace hidato_solver
 
 
 
-    }
-    class Coordinate 
-    { 
-        public int X; public int Y; 
-
-        public Coordinate GetSideCoordinate(Side side, Coordinate current)
-        {
-            if (side == Side.N)
-            {
-                current.X += 0;
-                current.Y += 1;
-            }
-            else if (side == Side.NE)
-            {
-                current.X += 1;
-                current.Y += 1;
-            }
-            else if (side == Side.E)
-            {
-                current.X += 1;
-                current.Y += 0;
-            }
-            else if (side == Side.SW)
-            {
-                current.X += 1;
-                current.Y += -1;
-            }
-            else if (side == Side.S)
-            {
-                current.X += 0;
-                current.Y += -1;
-            }
-            else if (side == Side.SW)
-            {
-                current.X += -1;
-                current.Y += -1;
-            }
-            else if (side == Side.W)
-            {
-                current.X += -1;
-                current.Y += 0;
-            }
-            else if (side == Side.NW)
-            {
-                current.X += -1;
-                current.Y += 1;
-            }
-
-            return current;
-        }
     }
 }

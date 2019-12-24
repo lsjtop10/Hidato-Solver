@@ -14,7 +14,7 @@ namespace hidato_solver
     //이 열거형 변수는 인접해 있는 칸을 8방위로 표현합니다. 
     //즉 위쪽에 있는 면을 N이라고 부르고(북쪽) 위쪽과 오른쪽의 사이에 있는 면을
     //NE(북동)쪽 이라 표현할 것입니다.
-    public enum Side { N = 0, NE, E, SE, S, SW, W, NW }
+    enum side { N = 0, NE, E, SE, S, SW, W, NW }
     //이 클래스는 어떠한 방향에 대하여 다음 숫자가 들어갈수 있는지 없는지 표시합니다.
     //true면 다음 숫자가 들어갈수 있다는 것을 의미하고, false면 다음 숫자가 들어가지 못한다는 것을 의미합니다.
 
@@ -156,7 +156,7 @@ namespace hidato_solver
         private DateTime DTNextUpdate;
         private Hidato_Board RefBoard;
         private bool SolveCancel = false;
-        private WhereInsertNow insertNow = new WhereInsertNow((int)Side.N, (int)Side.NW, (int)Side.N);
+        private WhereInsertNow insertNow = new WhereInsertNow((int)side.N, (int)side.NW, (int)side.N);
         private bool SmartSuch = false;
         private bool m_isProcess = false;
         private HidatoGrid.Node[] NodeOfHidatoGridArray;
@@ -170,7 +170,28 @@ namespace hidato_solver
         List<int> history = new List<int>();
 #endif
 
-       
+        /// <summary>
+        /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
+        /// false면 정해진 시간마다 업데이트 하고, true면 solve함수에서 변경된 내용을 바로 반영합니다.
+        /// </summary>
+        ///  static public bool ShowAllProssace = false;
+        static public bool ShowAllProcess = false;
+
+        /// <summary>
+        /// 몆초 간격으로 업데이트 하는지 지정하는 속성입니다.
+        /// </summary>
+        static public int NextUpdateSoconds = 5;
+
+        /// <summary>
+        /// 푸는 중에 일시 정지 얼마나 길게 일시 정지할지 확인합니다 단위는 ms입니다.
+        /// </summary>
+        static public int ProcessWaitTime = 0;
+
+        /// <summary>
+        /// 진행률에 따라 가변적으로 백트랙킹 여부를 나타내는 속성입니다.
+        /// -1은 항상 비활성화 0은 자동 1은 항상 활성화를 나타냅니다.
+        /// </summary>
+        static public int EnalbleSmartSuchTracking = -1;
 
         public HidatoSolver(HidatoGrid refHidatoGrid)
         {
@@ -260,110 +281,110 @@ namespace hidato_solver
             //현재 노드의 윗부분(북쪽)이 쓰지 않는 부분이거나(비대칭시 사용), 윗부분이 없거나, 뭐가 차있으면
             if (current.N == null)
             {
-                marker.SurchMarker[(int)Side.N] = false;
+                marker.SurchMarker[(int)side.N] = false;
             }
             else if (current.N.data == HidatoGrid.Node.unused || current.N.data > 0)
             {
                 //사용 할 수없다는 표시를 함 
-                marker.SurchMarker[(int)Side.N] = false;
+                marker.SurchMarker[(int)side.N] = false;
             }
             else//아니면
             {
-                marker.SurchMarker[(int)Side.N] = true;
+                marker.SurchMarker[(int)side.N] = true;
             }
 
             if (current.NE == null)
             {
-                marker.SurchMarker[(int)Side.NE] = false;
+                marker.SurchMarker[(int)side.NE] = false;
             }
             else if (current.NE.data == HidatoGrid.Node.unused || current.NE.data > 0)
             {
-                marker.SurchMarker[(int)Side.NE] = false;
+                marker.SurchMarker[(int)side.NE] = false;
             }
             else
             {
-                marker.SurchMarker[(int)Side.NE] = true;
+                marker.SurchMarker[(int)side.NE] = true;
             }
 
             if (current.E == null)
             {
-                marker.SurchMarker[(int)Side.E] = false;
+                marker.SurchMarker[(int)side.E] = false;
 
             }
             else if (current.E.data == HidatoGrid.Node.unused || current.E.data > 0)
             {
-                marker.SurchMarker[(int)Side.E] = false;
+                marker.SurchMarker[(int)side.E] = false;
             }
             else
             {
-                marker.SurchMarker[(int)Side.E] = true;
+                marker.SurchMarker[(int)side.E] = true;
             }
 
             if (current.SE == null)
             {
-                marker.SurchMarker[(int)Side.SE] = false;
+                marker.SurchMarker[(int)side.SE] = false;
 
             }
             else if (current.SE.data == HidatoGrid.Node.unused || current.SE.data > 0)
             {
-                marker.SurchMarker[(int)Side.SE] = false;
+                marker.SurchMarker[(int)side.SE] = false;
             }
             else
             {
-                marker.SurchMarker[(int)Side.SE] = true;
+                marker.SurchMarker[(int)side.SE] = true;
             }
 
             if (current.S == null)
             {
-                marker.SurchMarker[(int)Side.S] = false;
+                marker.SurchMarker[(int)side.S] = false;
             }
             else if (current.S.data == HidatoGrid.Node.unused || current.S.data > 0)
             {
-                marker.SurchMarker[(int)Side.S] = false;
+                marker.SurchMarker[(int)side.S] = false;
             }
             else
             {
-                marker.SurchMarker[(int)Side.S] = true;
+                marker.SurchMarker[(int)side.S] = true;
             }
 
             if (current.SW == null)
             {
-                marker.SurchMarker[(int)Side.SW] = false;
+                marker.SurchMarker[(int)side.SW] = false;
 
             }
             else if (current.SW.data == HidatoGrid.Node.unused || current.SW.data > 0)
             {
-                marker.SurchMarker[(int)Side.SW] = false;
+                marker.SurchMarker[(int)side.SW] = false;
             }
             else
             {
-                marker.SurchMarker[(int)Side.SW] = true;
+                marker.SurchMarker[(int)side.SW] = true;
             }
 
             if (current.W == null)
             {
-                marker.SurchMarker[(int)Side.W] = false;
+                marker.SurchMarker[(int)side.W] = false;
             }
             else if (current.W.data == HidatoGrid.Node.unused || current.W.data > 0)
             {
-                marker.SurchMarker[(int)Side.W] = false;
+                marker.SurchMarker[(int)side.W] = false;
             }
             else
             {
-                marker.SurchMarker[(int)Side.W] = true;
+                marker.SurchMarker[(int)side.W] = true;
             }
 
             if (current.NW == null)
             {
-                marker.SurchMarker[(int)Side.NW] = false;
+                marker.SurchMarker[(int)side.NW] = false;
             }
             else if (current.NW.data == HidatoGrid.Node.unused || current.NW.data > 0)
             {
-                marker.SurchMarker[(int)Side.NW] = false;
+                marker.SurchMarker[(int)side.NW] = false;
             }
             else
             {
-                marker.SurchMarker[(int)Side.NW] = true;
+                marker.SurchMarker[(int)side.NW] = true;
             }
 
 
@@ -568,7 +589,6 @@ namespace hidato_solver
 
         //몆번에 한번 꼴로 HowManyExitStack변수의 값을 올릴 것 인지 설정하는 상수
         private const int HowOftenChange = 50;
-        
         private bool solve()
         {
 
@@ -586,6 +606,14 @@ namespace hidato_solver
 
 
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
+
+
+
+
+            //if (current.data == maxval - 1 && PrevNodeIsPossible == true)
+            //{
+            //    return true;
+            //}
 
             //비어있는 칸이 더 이상 없으면
             if (EmptyNodeCount == 0)
@@ -947,70 +975,70 @@ namespace hidato_solver
 
 
                         #region 이미 탐색한 자리는 false로 마킹합니다. 
-                        if (insertNow.current == (int)Side.N)
+                        if (insertNow.current == (int)side.N)
                         {
-                            current.marker.SurchMarker[(int)Side.N] = false;
+                            current.marker.SurchMarker[(int)side.N] = false;
                         }
-                        else if (insertNow.current == (int)Side.NE)
+                        else if (insertNow.current == (int)side.NE)
                         {
-                            current.marker.SurchMarker[(int)Side.NE] = false;
+                            current.marker.SurchMarker[(int)side.NE] = false;
                         }
-                        else if (insertNow.current == (int)Side.E)
+                        else if (insertNow.current == (int)side.E)
                         {
-                            current.marker.SurchMarker[(int)Side.E] = false;
+                            current.marker.SurchMarker[(int)side.E] = false;
                         }
-                        else if (insertNow.current == (int)Side.SE)
+                        else if (insertNow.current == (int)side.SE)
                         {
-                            current.marker.SurchMarker[(int)Side.SE] = false;
+                            current.marker.SurchMarker[(int)side.SE] = false;
                         }
-                        else if (insertNow.current == (int)Side.S)
+                        else if (insertNow.current == (int)side.S)
                         {
-                            current.marker.SurchMarker[(int)Side.S] = false;
+                            current.marker.SurchMarker[(int)side.S] = false;
                         }
-                        else if (insertNow.current == (int)Side.SW)
+                        else if (insertNow.current == (int)side.SW)
                         {
-                            current.marker.SurchMarker[(int)Side.SW] = false;
+                            current.marker.SurchMarker[(int)side.SW] = false;
                         }
-                        else if (insertNow.current == (int)Side.W)
+                        else if (insertNow.current == (int)side.W)
                         {
-                            current.marker.SurchMarker[(int)Side.W] = false;
+                            current.marker.SurchMarker[(int)side.W] = false;
                         }
-                        else if (insertNow.current == (int)Side.NW)
+                        else if (insertNow.current == (int)side.NW)
                         {
-                            current.marker.SurchMarker[(int)Side.NW] = false;
+                            current.marker.SurchMarker[(int)side.NW] = false;
                         }
                         #endregion
 
                         #region current참조를 알맞은 위치로 옮기는 코드블럭 입니다.
-                        if (insertNow.current == (int)Side.N)
+                        if (insertNow.current == (int)side.N)
                         {
                             current = current.N;
                         }
-                        else if (insertNow.current == (int)Side.NE)
+                        else if (insertNow.current == (int)side.NE)
                         {
                             current = current.NE;
                         }
-                        else if (insertNow.current == (int)Side.E)
+                        else if (insertNow.current == (int)side.E)
                         {
                             current = current.E;
                         }
-                        else if (insertNow.current == (int)Side.SE)
+                        else if (insertNow.current == (int)side.SE)
                         {
                             current = current.SE;
                         }
-                        else if (insertNow.current == (int)Side.S)
+                        else if (insertNow.current == (int)side.S)
                         {
                             current = current.S;
                         }
-                        else if (insertNow.current == (int)Side.SW)
+                        else if (insertNow.current == (int)side.SW)
                         {
                             current = current.SW;
                         }
-                        else if (insertNow.current == (int)Side.W)
+                        else if (insertNow.current == (int)side.W)
                         {
                             current = current.W;
                         }
-                        else if (insertNow.current == (int)Side.NW)
+                        else if (insertNow.current == (int)side.NW)
                         {
                             current = current.NW;
                         }
@@ -1203,30 +1231,3 @@ namespace hidato_solver
 
     }
 }
-
-public static class Setting
-{
-    /// <summary>
-    /// 실시간으로 업데이트 하는지 안 하는지를 지정하는 변수입니다.
-    /// false면 정해진 시간마다 업데이트 하고, true면 solve함수에서 변경된 내용을 바로 반영합니다.
-    /// </summary>
-    ///  static public bool ShowAllProssace = false;
-    static public bool ShowAllProcess = false;
-
-    /// <summary>
-    /// 몆초 간격으로 업데이트 하는지 지정하는 속성입니다.
-    /// </summary>
-    static public int NextUpdateSoconds = 5;
-
-    /// <summary>
-    /// 푸는 중에 일시 정지 얼마나 길게 일시정지할지 확인합니다. 단위는 ms입니다.
-    /// </summary>
-    static public int ProcessWaitTime = 0;
-
-    /// <summary>
-    /// 진행률에 따라 가변적으로 백트랙킹 여부를 나타내는 속성입니다.
-    /// -1은 항상 비활성화 0은 자동 1은 항상 활성화를 나타냅니다.
-    /// </summary>
-    static public int EnalbleSmartSuchTracking = -1;
-}
-    
