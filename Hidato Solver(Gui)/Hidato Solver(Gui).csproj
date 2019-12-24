@@ -90,7 +90,7 @@
   </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup>
-    <ApplicationIcon>etc\Blackvariant-Button-Ui-Microsoft-Office-Apps-Microsoft-Solver.ico</ApplicationIcon>
+    <ApplicationIcon>Blackvariant-Button-Ui-Microsoft-Office-Apps-Microsoft-Solver.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
@@ -109,35 +109,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Solver\Grid.cs" />
-    <Compile Include="Form\Form1.cs">
+    <Compile Include="Grid.cs" />
+    <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\Form1.Designer.cs">
+    <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form\Hidato Board.cs">
+    <Compile Include="Hidato Board.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\Hidato Board.Designer.cs">
+    <Compile Include="Hidato Board.Designer.cs">
       <DependentUpon>Hidato Board.cs</DependentUpon>
     </Compile>
-    <Compile Include="Solver\Hidato Solver.cs" />
-    <Compile Include="Form\OptionDig.cs">
+    <Compile Include="Hidato Solver.cs" />
+    <Compile Include="OptionDig.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\OptionDig.Designer.cs">
+    <Compile Include="OptionDig.Designer.cs">
       <DependentUpon>OptionDig.cs</DependentUpon>
     </Compile>
-    <Compile Include="etc\Program.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form\Form1.resx">
+    <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\Hidato Board.resx">
+    <EmbeddedResource Include="Hidato Board.resx">
       <DependentUpon>Hidato Board.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\OptionDig.resx">
+    <EmbeddedResource Include="OptionDig.resx">
       <DependentUpon>OptionDig.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -149,7 +149,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="etc\Hidato Solver%28Gui%29_TemporaryKey.pfx" />
+    <None Include="Hidato Solver%28Gui%29_TemporaryKey.pfx" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -162,7 +162,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="etc\App.config">
+    <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -179,7 +179,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="etc\Blackvariant-Button-Ui-Microsoft-Office-Apps-Microsoft-Solver.ico" />
+    <Content Include="Blackvariant-Button-Ui-Microsoft-Office-Apps-Microsoft-Solver.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
