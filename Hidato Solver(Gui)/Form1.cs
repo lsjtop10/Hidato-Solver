@@ -45,11 +45,12 @@ namespace Hidato_Solver_Gui_
 
         private void buttonBrowse_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog1 = new OpenFileDialog();
-
-            openFileDialog1.Filter = "Hidato board files (*.txt)|*.txt|All files (*.*)|*.*";
-            openFileDialog1.RestoreDirectory = true;
-            openFileDialog1.CheckFileExists = true;
+            OpenFileDialog openFileDialog1 = new OpenFileDialog
+            {
+                Filter = "Hidato board files (*.txt)|*.txt|All files (*.*)|*.*",
+                RestoreDirectory = true,
+                CheckFileExists = true
+            };
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
@@ -60,7 +61,7 @@ namespace Hidato_Solver_Gui_
         private void buttonLoad_Click(object sender, EventArgs e)
         {
 
-            Stream stream = null;
+            Stream stream;
             try
             {
                 stream = File.OpenRead(textBox3.Text);
