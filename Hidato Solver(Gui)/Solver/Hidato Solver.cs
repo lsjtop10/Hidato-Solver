@@ -14,7 +14,6 @@ namespace hidato_solver
     //이 열거형 변수는 인접해 있는 칸을 8방위로 표현합니다. 
     //즉 위쪽에 있는 면을 N이라고 부르고(북쪽) 위쪽과 오른쪽의 사이에 있는 면을
     //NE(북동)쪽 이라 표현할 것입니다.
-    enum side { N = 0, NE, E, SE, S, SW, W, NW }
     //이 클래스는 어떠한 방향에 대하여 다음 숫자가 들어갈수 있는지 없는지 표시합니다.
     //true면 다음 숫자가 들어갈수 있다는 것을 의미하고, false면 다음 숫자가 들어가지 못한다는 것을 의미합니다.
 
@@ -46,17 +45,17 @@ namespace hidato_solver
         }
     }
 
-    class history
+    class History
     {
-        private List<HidatoGrid.Node> m_history = new List<HidatoGrid.Node>();
+        private List<Coordinate> m_history = new List<Coordinate>();
 
-        public void AddNode(HidatoGrid.Node node)
+        public void AddNode(Coordinate node, HidatoGrid Data)
         {
             this.m_history.Add(node);
-            m_history.Sort(delegate (HidatoGrid.Node c1, HidatoGrid.Node c2) { return c1.data.CompareTo(c2.data); });
+            m_history.Sort(delegate (Coordinate c1, Coordinate c2) { return Data.GetDataAt(c1).CompareTo(Data.GetDataAt(c2)); });
         }
 
-        public HidatoGrid.Node currentNode
+        public Coordinate CurrentNode
         {
             get {
                     if (m_history.Count == 0)
@@ -71,16 +70,16 @@ namespace hidato_solver
         }
 
 
-        public HidatoGrid.Node getPrevNode(HidatoGrid.Node current)
+        public Coordinate GetPrevNode(Coordinate current , HidatoGrid Data)
         {
-            int cost = current.data;
-            HidatoGrid.Node MinCostNode = null;
+            int cost = Data.GetDataAt(current);
+            Coordinate MinCostNode = null;
             for(int i = 0; i < m_history.Count; i++)
             {
                 int CurrentCost;
-                HidatoGrid.Node CurrentNode = m_history[i];
+                Coordinate currentNode = m_history[i];
 
-                CurrentCost = current.data - CurrentNode.data;
+                CurrentCost = Data.GetDataAt(current) - Data.GetDataAt(currentNode);
 
                 if(CurrentCost < cost)
                 {
@@ -100,65 +99,24 @@ namespace hidato_solver
         }
     }
 
-    public class WhereInsertNow
-    {
-        private int minval;
-        private int maxval;
-
-        private int m_current = 0;
-
-        public WhereInsertNow(int minval, int maxval, int InitialVal)
-        {
-            this.minval = minval;
-            this.maxval = maxval;
-            m_current = InitialVal;
-        }
-
-        public int current
-        {
-            set
-            {
-                if (!(value < maxval))
-                {
-                    m_current = value;
-                }
-            }
-
-            get { return m_current; }
-        }
-
-        //1식 증가하다가 처음으로 돌아옵니다.
-        public int increase()
-        {
-            if (m_current >= maxval)
-            {
-                m_current = minval;
-            }
-            else
-            {
-                m_current++;
-            }
-
-            return m_current;
-        }
-
-    }
-
 
     class HidatoSolver
     {
         private int hidatoCount = 1;
         private HidatoGrid m_hidatoGrid;
-        private HidatoGrid.Node current;
+        private Coordinate current;
         private int maxval;
-        private HidatoGrid.Node TargetNode;
-        private HidatoGrid.Node FirstNode;
+        private Coordinate TargetNode;
+        private Coordinate FirstNode;
         private DateTime DTNextUpdate;
         private Hidato_Board RefBoard;
         private bool SolveCancel = false;
-        private WhereInsertNow insertNow = new WhereInsertNow((int)side.N, (int)side.NW, (int)side.N);
         private bool SmartSuch = false;
         private bool m_isProcess = false;
+
+        /// <summary>
+        /// 히다토 보드의 모든 노드를 오름차순으로 정렬
+        /// </summary>
         private HidatoGrid.Node[] NodeOfHidatoGridArray;
         /// <summary>
         /// 비어있는 칸 카운트
@@ -204,13 +162,14 @@ namespace hidato_solver
         }
 
         #region 풀이에 필요한 각종 함수입니다.
-        private HidatoGrid.Node FindFirstNode()
+        private Coordinate FindFirstNode(HidatoGrid Data)
         {
-            for (int i = 0; i < m_hidatoGrid.GridClength; i++)
-                for (int j = 0; j < m_hidatoGrid.GridRlength; j++)
+            Coordinate temp = new Coordinate(0,0);
+            for (int i = 0; i < m_hidatoGrid.GridCols; i++)
+                for (int j = 0; j < m_hidatoGrid.GridRows; j++)
                 {
-                    HidatoGrid.Node temp = m_hidatoGrid.GetNodeAt(i, j);
-                    if (temp.Input == 1)
+                    
+                    if (Data.GetDataAt(j,i) == 1)
                     {
                         return temp;
                     }
@@ -220,7 +179,7 @@ namespace hidato_solver
 
         private HidatoGrid.Node FindNextTargetNode(HidatoGrid.Node current)
         {
-            //다음노드
+            //다음노드를 일단 작은 노드로 설정
             HidatoGrid.Node TargetNode = FindFirstNode();
             //현재노드
             HidatoGrid.Node nNode;
@@ -228,12 +187,12 @@ namespace hidato_solver
             //최대값 지역변수를 선언한 다음 미리 구해놓은 맴버 변수(maxval변수)에서 값을 가져옴 
             int maxval = this.maxval;
 
-            for (int i = 0; i < m_hidatoGrid.GridClength; i++)
+            for (int i = 0; i < m_hidatoGrid.GridCols; i++)
             {
-                for (int j = 0; j < m_hidatoGrid.GridRlength; j++)
+                for (int j = 0; j < m_hidatoGrid.GridRows; j++)
                 {
                     //현재 위치의 노드;
-                    nNode = m_hidatoGrid.GetNodeAt(i, j);
+                    nNode = m_hidatoGrid.GetNodeAt(j, i);
 
                     //현재 위치의 노드의 값이 매개변수로 넘어온 노드보다 크면서
                     //최대값보다 작으면
@@ -252,21 +211,21 @@ namespace hidato_solver
 
         private int FindMaxVal()
         {
-            //최대값
+            //최대
             int maxval = 0;
             //현재값
             int nval = 0;
 
-            for (int i = 0; i < m_hidatoGrid.GridClength; i++)
-                for (int j = 0; j < m_hidatoGrid.GridRlength; j++)
+            for (int i = 0; i < m_hidatoGrid.GridCols; i++)
+                for (int j = 0; j < m_hidatoGrid.GridRows; j++)
                 {
                     //현재 위치의 값
-                    nval = m_hidatoGrid.GetDataAt(i, j);
+                    nval = m_hidatoGrid.GetDataAt(j, i);
 
-                    //만약 최대값이 현재값보다 작으면
+                    //만약 최댓값이 현재 값보다 작으면
                     if (nval > maxval)
                     {
-                        //최대값은 현재값
+                        //최대값은 현재 값
                         maxval = nval;
                     }
                 }
@@ -275,17 +234,17 @@ namespace hidato_solver
 
         }
 
-        private SurchMarking FindOption(HidatoGrid.Node current)
+        private SurchMarking FindOption(Coordinate current, HidatoGrid Data)
         {
             SurchMarking marker = new SurchMarking();
-            //현재 노드의 윗부분(북쪽)이 쓰지 않는 부분이거나(비대칭시 사용), 윗부분이 없거나, 뭐가 차있으면
+            //현재 노드의 윗부분(북쪽)이 쓰지 않는 부분이거나, 윗부분이 없거나, 뭐가 차있으면
             if (current.N == null)
             {
                 marker.SurchMarker[(int)side.N] = false;
             }
             else if (current.N.data == HidatoGrid.Node.unused || current.N.data > 0)
             {
-                //사용 할 수없다는 표시를 함 
+                //사용 할 수 없다는 표시를 함 
                 marker.SurchMarker[(int)side.N] = false;
             }
             else//아니면
@@ -391,9 +350,12 @@ namespace hidato_solver
             return marker;
         }
 
-        private bool ChekPrevPossibleVal(HidatoGrid.Node current)
+        private bool ChekPrevPossibleVal(Coordinate Current, HidatoGrid Data)
         {
-            if (current.N != null)
+            Coordinate tmp;
+            tmp = Current.GetSideDelta(Side.N);
+
+            if (tmp != null)
             {
 
                 if (current.data + 1 == current.N.data)
@@ -469,7 +431,7 @@ namespace hidato_solver
         }
 
 
-        private HidatoGrid.Node FindMinPossibe()
+        private Coordinate FindMinPossibe(HidatoGrid Data)
         {
             Array.Sort(NodeOfHidatoGridArray, delegate (HidatoGrid.Node c1, HidatoGrid.Node c2) { return c1.data.CompareTo(c2.data); });
 
@@ -485,7 +447,7 @@ namespace hidato_solver
             for (int i = 0; i < NodeOfHidatoGridArray.Length; i++)
             {
                 //현재 노드
-                HidatoGrid.Node currentNode = NodeOfHidatoGridArray[i];
+                HidatoGrid.Node currentPtr = NodeOfHidatoGridArray[i];
 
                 if (start == null)
                 {
@@ -587,8 +549,6 @@ namespace hidato_solver
 
         #endregion
 
-        //몆번에 한번 꼴로 HowManyExitStack변수의 값을 올릴 것 인지 설정하는 상수
-        private const int HowOftenChange = 50;
         private bool solve()
         {
 
@@ -607,13 +567,7 @@ namespace hidato_solver
 
             bool PrevNodeIsPossible = ChekPrevPossibleVal(current);
 
-
-
-
-            //if (current.data == maxval - 1 && PrevNodeIsPossible == true)
-            //{
-            //    return true;
-            //}
+           
 
             //비어있는 칸이 더 이상 없으면
             if (EmptyNodeCount == 0)
@@ -657,18 +611,8 @@ namespace hidato_solver
                                 {
                                     EmptyNodeCount++;
                                 }
-
-                                //if (current == history.currentNode)
-                                {
-                                    //맨 윗부분의 이전노드가 아니라 
-                                    current = prevNode;
-                                }
-                                //else
-                                //{
-                                //맨 윗부분 노드를 현재 노드로 설정함
-                                //current = history.currentNode;
-                                //}
-
+                                //맨 윗부분의 이전노드가 아니라 
+                                current = prevNode;
 
                                 //HidatoCount변수를 바꾼 현재노드의 데이터로 설정한 후
                                 hidatoCount = current.data;
@@ -1215,12 +1159,12 @@ namespace hidato_solver
         public void show()
         {
             Console.WriteLine("");
-            for (int i = 0; i < m_hidatoGrid.GridClength; i++)
+            for (int i = 0; i < m_hidatoGrid.GridCols; i++)
             {
                 Console.WriteLine("");
-                for (int j = 0; j < m_hidatoGrid.GridRlength; j++)
+                for (int j = 0; j < m_hidatoGrid.GridRows; j++)
                 {
-                    int data = m_hidatoGrid.GetDataAt(i, j);
+                    int data = m_hidatoGrid.GetDataAt(j, i);
                     Console.Write(" ");
                     Console.Write("{0}", data);
                 }
