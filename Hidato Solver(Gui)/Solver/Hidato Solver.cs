@@ -47,7 +47,7 @@ namespace hidato_solver
 
     class History
     {
-        private List<Coordinate> m_history = new List<Coordinate>();
+        private List<HidatoGrid.Node> m_history = new List<HidatoGrid.Node>();
 
         public void AddNode(Coordinate node, HidatoGrid Data)
         {
