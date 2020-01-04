@@ -49,8 +49,8 @@ namespace hidato_solver
     class LegacyDFSSolver
     {
         HidatoGrid m_hidatoGrid;
-        HidatoGrid.Node current;
-        HidatoGrid.Node target;
+        HidatoGrid.Node Current;
+        HidatoGrid.Node Target;
 
         int maxVal;
         DateTime DTNextUpdate;
@@ -66,9 +66,12 @@ namespace hidato_solver
         {
             //전해받은 grid를 현재 클래스의 grid로 
             m_hidatoGrid = grid;
+
             //첫 번째 노드를 Currrent노드로
+            Current = FindFirstNode();
 
             //다음 업데이트 시간을 현재 시간 + 설정된 다음 업데이트 시간으로 설정
+            DTNextUpdate = DateTime.Now.AddSeconds(Option.NextUpdateSoconds);
         }
         
         public HidatoGrid.Node FindFirstNode()
@@ -97,42 +100,42 @@ namespace hidato_solver
         {
             SurchMarking option = new SurchMarking();
 
-            if(current.N != null && current.N.Data == 0)
+            if(this.Current.N != null && this.Current.N.Data == 0)
             {
                 option.SurchMarker[(int)Side.N] = true;
             }
             
-            if(current.NE != null && current.NE.Data == 0)
+            if(this.Current.NE != null && this.Current.NE.Data == 0)
             {
                 option.SurchMarker[(int)Side.NE] = true;
             }
 
-            if(current.E != null && current.E.Data == 0)
+            if(this.Current.E != null && this.Current.E.Data == 0)
             {
                 option.SurchMarker[(int)Side.E] = true;
             }
 
-            if(current.SE != null && current.SE.Data == 0)
+            if(this.Current.SE != null && this.Current.SE.Data == 0)
             {
                 option.SurchMarker[(int)Side.SE] = true;
             }
 
-            if(current.S != null && current.S.Data == 0)
+            if(this.Current.S != null && this.Current.S.Data == 0)
             {
                 option.SurchMarker[(int)Side.S] = true;
             }
 
-            if(current.SW != null && current.SW.Data == 0)
+            if(this.Current.SW != null && this.Current.SW.Data == 0)
             {
                 option.SurchMarker[(int)Side.SW] = true;
             }
 
-            if(current.W != null && current.W.Data == 0)
+            if(this.Current.W != null && this.Current.W.Data == 0)
             {
                 option.SurchMarker[(int)Side.W] = true;
             }
 
-            if(current.NW != null && current.NW.Data == 0)
+            if(this.Current.NW != null && this.Current.NW.Data == 0)
             {
                 option.SurchMarker[(int)Side.NW] = true;
             }
@@ -179,7 +182,7 @@ namespace hidato_solver
         HidatoGrid m_hidatoGrid;
 
         LegacyDFSSolver dfsSolver;
-        FastSolver festSolverSss;
+        FastSolver festSolver;
         
         public HidatoSolverInterface(HidatoGrid grid, Hidato_Board board)
         {

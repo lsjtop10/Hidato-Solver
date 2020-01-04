@@ -227,11 +227,6 @@ namespace hidato_solver
         /// 모든 노드를 1차원 리스트로 묶어 반환
         /// </summary>
         /// <returns></returns>
-        public Node[] getAllNodes()
-        {
-            Node[] nodesArr= new Node[GridCols * GridRows - Disable];
-            return nodesArr;
-        }
 
         public int DisableBoxesCount()
         {
