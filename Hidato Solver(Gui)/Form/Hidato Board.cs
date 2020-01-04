@@ -125,7 +125,7 @@ namespace Hidato_Solver_Gui_
             catch (FormatException) {}
             catch (OverflowException) {}
 
-            if (data > hidatoGrid.GridCols * hidatoGrid.GridRows- hidatoGrid.Disable)
+            if (data > hidatoGrid.GridCols * hidatoGrid.GridRows - hidatoGrid.Disable)
             {
                 tb.BackColor = Color.Red;
                 tb.ForeColor = Color.Black;

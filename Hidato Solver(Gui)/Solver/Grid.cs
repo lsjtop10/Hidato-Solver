@@ -47,14 +47,8 @@ namespace hidato_solver
         {
             //-1을 unsed라는 이름으로 비활성화된 칸을 나타내는 상수로 정의합니다.
             public const int unused = -1;
-            public Node N;
-            public Node NE;
-            public Node E;
-            public Node SE;
-            public Node S;
-            public Node SW;
-            public Node W;
-            public Node NW;
+
+            public Node[] Abutter = new Node[8];
 
             public SurchMarking marker;
 
@@ -70,13 +64,10 @@ namespace hidato_solver
 
             public Node()
             {
-                this.NE = null;
-                this.E = null;
-                this.SE = null;
-                this.S = null;
-                this.SE = null;
-                this.W = null;
-                this.NW = null;
+                for(int i = 0; i < Abutter.Length; i++)
+                {
+                    Abutter[i] = null;
+                }
 
                 for (int i = 0; i < insertMarking.Length; i++)
                 {
@@ -103,15 +94,15 @@ namespace hidato_solver
             //가로 폭 만큼 생성
             while (Rows - 1 > Rcount)
             {
-                if (horse.E != null)
+                if (horse.Abutter[(int)Side.E] != null)
                 {
-                    horse = horse.E;
+                    horse = horse.Abutter[(int)Side.E];
                 }
                 else
                 {
                     Node temp = new Node();
-                    horse.E = temp;
-                    temp.W = horse;
+                    horse.Abutter[(int)Side.E] = temp;
+                    horse.Abutter[(int)Side.W] = horse;
                     Rcount++;
                     temp = null;
                 }
@@ -121,9 +112,9 @@ namespace hidato_solver
             {
                 horse = head;
 
-                while (horse.S != null)
+                while (horse.Abutter[(int)Side.S] != null)
                 {
-                    horse = horse.S;
+                    horse = horse.Abutter[(int)Side.S];
                 }
 
                 Rcount = 0;
@@ -131,48 +122,52 @@ namespace hidato_solver
                 {
 
                     Node temp1 = new Node();
-                    horse.S = temp1;
-                    temp1.N = horse;
+                    horse.Abutter[(int)Side.S] = temp1;
+                    temp1.Abutter[(int)Side.N] = horse;
 
-                    if (horse.S.W == null)
+                    //horse.S.W
+                    if (horse.Abutter[(int)Side.S].Abutter[(int)Side.W] == null)
                     {
-                        if (horse.W == null)
+                        
+                        if (horse.Abutter[(int)Side.W] == null)
                         {
-                            horse.S.W = null;
+                            //s.w
+                            horse.Abutter[(int)Side.S].Abutter[(int)Side.W] = null;
                         }
                         else
                         {
-                            horse.S.W = horse.W.S;
-                            horse.W.S.E = horse.S;
+                            //s.w , w.s
+                            horse.Abutter[(int)Side.S].Abutter[(int)Side.W]= horse.Abutter[(int)Side.W].Abutter[(int)Side.S];
+                            horse.Abutter[(int)Side.W].Abutter[(int)Side.S].Abutter[(int)Side.E] = horse.Abutter[(int)Side.S];
                         }
                     }
 
-                    if (horse.S.NW == null)
+                    if (horse.Abutter[(int)Side.S].Abutter[(int)Side.NW] == null)
                     {
-                        if (horse.W == null)
+                        if (horse.Abutter[(int)Side.W] == null)
                         {
-                            horse.S.NW = null;
+                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NW] = null;
                         }
                         else
                         {
-                            horse.S.NW = horse.W;
-                            horse.W.SE = horse.S;
+                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NW] = horse.Abutter[(int)Side.W];
+                            horse.Abutter[(int)Side.W].Abutter[(int)Side.SE] = horse.Abutter[(int)Side.S];
                         }
                     }
 
-                    if (horse.S.NE == null)
+                    if (horse.Abutter[(int)Side.S].Abutter[(int)Side.NE] == null)
                     {
-                        if (horse.E == null)
+                        if (horse.Abutter[(int)Side.E] == null)
                         {
-                            horse.S.NE = null;
+                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NE] = null;
                         }
                         else
                         {
-                            horse.S.NE = horse.E;
-                            horse.E.SW = horse.S;
+                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NE] = horse.Abutter[(int)Side.E];
+                            horse.Abutter[(int)Side.E].Abutter[(int)Side.SW]= horse.Abutter[(int)Side.S];
                         }
                     }
-                    horse = horse.E;
+                    horse = horse.Abutter[(int)Side.E];
                     Rcount++;
                     temp1 = null;
 
@@ -196,14 +191,14 @@ namespace hidato_solver
 
             while (Col != count)
             {
-                horse = horse.S;
+                horse = horse.Abutter[(int)Side.S];
                 count++;
             }
 
             count = 0;
             while (Row != count)
             {
-                horse = horse.E;
+                horse = horse.Abutter[(int)Side.E];
                 count++;
             }
 
@@ -236,7 +231,7 @@ namespace hidato_solver
             {
                 for (int j = 0; j < GridRows; j++)
                 {
-                    if (GetDataAt(j, i) == 0)
+                    if (GetDataAt(j, i) == -1)
                     {
                         disableCount++;
                     }

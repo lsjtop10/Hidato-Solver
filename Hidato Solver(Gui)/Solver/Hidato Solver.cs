@@ -29,7 +29,52 @@ namespace hidato_solver
             }
         }
 
-        public bool[] SurchMarker = new bool[8];
+        /// <summary>
+        /// SurchMarker 배열에 대한 인덱서
+        /// 외부에서 클레스 내부의 SurchMarker 배열에 직접 접근하지 못하도록 하는 역할 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public bool this[Side index]
+        {
+            get
+            {
+                return SurchMarker[(int)index];
+            }
+            set
+            {
+                SurchMarker[(int)index] = value;
+            }
+        }
+        public bool this[int index]
+        {
+            get
+            {
+                if (index < 0 || index > SurchMarker.Length)
+                {
+                    throw new IndexOutOfRangeException();
+                }
+                else
+                {
+                    return SurchMarker[index];
+                }
+            }
+            set
+            {
+                SurchMarker[index] = value;
+            }
+        }
+
+        public int Length
+        {
+            get
+            {
+                return SurchMarker.Length;
+            }
+        }
+
+        private bool[] SurchMarker = new bool[8];
+
         public void EmptyMarker()
         {
             for (int i = 0; i < SurchMarker.Length; i++)
@@ -38,6 +83,18 @@ namespace hidato_solver
             }
         }
 
+        public int GetTrueCount()
+        {
+            int count = 0;
+            for (int i = 0; i < SurchMarker.Length; i++)
+            { 
+                if(SurchMarker[i] == true)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
     }
         
     
@@ -49,7 +106,15 @@ namespace hidato_solver
     class LegacyDFSSolver
     {
         HidatoGrid m_hidatoGrid;
+        
+        /// <summary>
+        /// 현재 풀이 진행 중인 노드 여기서 다음 수가 들어갈 노드 탐색 
+        /// </summary>
         HidatoGrid.Node Current;
+        
+        /// <summary>
+        /// Current보다 큰 수 중에 가장 작은 수를 가지고 있는 노드  
+        /// </summary>
         HidatoGrid.Node Target;
 
         int maxVal;
@@ -100,60 +165,63 @@ namespace hidato_solver
         {
             SurchMarking option = new SurchMarking();
 
-            if(this.Current.N != null && this.Current.N.Data == 0)
+            //현재 노드의 북쪽부터 북동쪽부터 순회하며
+            for (Side curSide = Side.N; curSide < Side.NW; curSide++)
             {
-                option.SurchMarker[(int)Side.N] = true;
-            }
-            
-            if(this.Current.NE != null && this.Current.NE.Data == 0)
-            {
-                option.SurchMarker[(int)Side.NE] = true;
-            }
-
-            if(this.Current.E != null && this.Current.E.Data == 0)
-            {
-                option.SurchMarker[(int)Side.E] = true;
-            }
-
-            if(this.Current.SE != null && this.Current.SE.Data == 0)
-            {
-                option.SurchMarker[(int)Side.SE] = true;
-            }
-
-            if(this.Current.S != null && this.Current.S.Data == 0)
-            {
-                option.SurchMarker[(int)Side.S] = true;
-            }
-
-            if(this.Current.SW != null && this.Current.SW.Data == 0)
-            {
-                option.SurchMarker[(int)Side.SW] = true;
-            }
-
-            if(this.Current.W != null && this.Current.W.Data == 0)
-            {
-                option.SurchMarker[(int)Side.W] = true;
-            }
-
-            if(this.Current.NW != null && this.Current.NW.Data == 0)
-            {
-                option.SurchMarker[(int)Side.NW] = true;
+                if (Current.Abutter[(int)curSide] != null && Current.Abutter[(int)curSide].Data == 0)
+                {
+                    option[curSide] = true;
+                }
             }
 
             return option;
         }
-        
+
+        /// <summary>
+        /// Current가 Target에 위치상으로 인접해 있는지 확인
+        /// </summary>
+        /// <param name="Currnet"></param>
+        /// <param name="Target"></param>
+        /// <returns></returns>
+        private bool AbutsOnTarget(HidatoGrid.Node Currnet, HidatoGrid.Node Target)
+        {
+            bool tmp = false;
+            return tmp;
+
+
+        }
+
         /// <summary>
         /// 재귀 탐색
         /// </summary>
         public bool Solve()
         {
+            SurchMarking currentOption;
 
-            //유효성 검사(과연 이 노드가 여기 들어가는 게 맞을까)
+        //유효성 검사(과연 이 노드가 여기 들어가는 게 맞을까)
+            
 
-            //탐색
+            //현재 노드가 타겟 노드보다 1 작으면서 타겟 노드와 인접해 있지 않으면 
+            
+         //탐색
+            currentOption = FindOption(Current);
 
-            //삽입
+
+            //다음 수가 들어갈 면이 없으면
+            if(currentOption.GetTrueCount() == 0)
+            {
+                //되돌아감
+                return false;
+            }
+
+        //삽입
+            for (int i = 0; i < currentOption.Length; i++)
+            {
+                if(currentOption[Side.N] == true)
+                {
+
+                }
+            }
 
             return false;
         }
