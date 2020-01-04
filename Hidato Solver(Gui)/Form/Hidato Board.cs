@@ -240,7 +240,7 @@ namespace Hidato_Solver_Gui_
         private void buttonSolve_Click(object sender, EventArgs e)
         {
             //문제를 푸는데 성공하면
-            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.startsolve(this)));
+            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.Startsolve(this)));
 
             task1.Start();
         }

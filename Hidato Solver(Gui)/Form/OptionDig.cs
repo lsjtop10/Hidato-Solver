@@ -19,12 +19,12 @@ namespace Hidato_Solver_Gui_
 
             textBox1.Enabled = true;
             textBox1.Enabled = true;
-            textBox2.Text = HidatoSolver.NextUpdateSoconds.ToString();
-            textBox1.Text = HidatoSolver.ProcessWaitTime.ToString();
+            textBox2.Text = Option.NextUpdateSoconds.ToString();
+            textBox1.Text = Option.ProcessWaitTime.ToString();
 
-            if (HidatoSolver.ShowAllProcess == true)
+            if (Option.ShowAllProcess == true)
             {
-                if (!(HidatoSolver.ProcessWaitTime == 0))
+                if (!(Option.ProcessWaitTime == 0))
                 {
                     checkBox1.Checked = true;
 
@@ -58,7 +58,7 @@ namespace Hidato_Solver_Gui_
         {
             if (radioButton1.Checked)
             {
-                HidatoSolver.ShowAllProcess = true;
+                Option.ShowAllProcess = true;
                 if (checkBox1.Checked)
                 {
                     if (textBox1.Text == "")
@@ -66,23 +66,23 @@ namespace Hidato_Solver_Gui_
                         checkBox1.Enabled = false;
                         textBox1.Enabled = false;
 
-                        HidatoSolver.ProcessWaitTime = 0;
+                        Option.ProcessWaitTime = 0;
                     }
                     else
                     {
-                        HidatoSolver.ProcessWaitTime = int.Parse(textBox1.Text);
+                        Option.ProcessWaitTime = int.Parse(textBox1.Text);
                     }
                 }
                 else
                 {
                     textBox1.Enabled = false;
 
-                    HidatoSolver.ProcessWaitTime = 0;
+                    Option.ProcessWaitTime = 0;
                 }
             }
             else if (radioButton2.Checked)
             {
-                HidatoSolver.ShowAllProcess = false;
+                Option.ShowAllProcess = false;
 
                 if (textBox2.Text == "")
                 {
@@ -91,8 +91,8 @@ namespace Hidato_Solver_Gui_
                 }
                 else
                 {
-                    HidatoSolver.ShowAllProcess = false;
-                    HidatoSolver.NextUpdateSoconds = int.Parse(textBox2.Text);
+                    Option.ShowAllProcess = false;
+                    Option.NextUpdateSoconds = int.Parse(textBox2.Text);
                 }
             }
             if ((Button)sender == OkButton)
