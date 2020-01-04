@@ -17,7 +17,7 @@ namespace Hidato_Solver_Gui_
 
     public partial class Hidato_Board : Form
     {
-        private HidatoSolver hidato_solver;
+        private HidatoSolverInterface hidato_solver;
         private HidatoGrid hidatoGrid;
         private TextBox[,] displayed;
         public delegate void VoidDelegate();
@@ -81,7 +81,7 @@ namespace Hidato_Solver_Gui_
         private void InitializeArrays(int nCols, int nRows)
         {
             hidatoGrid = new HidatoGrid(nRows, nCols);
-            hidato_solver = new HidatoSolver(hidatoGrid);
+            hidato_solver = new HidatoSolverInterface(hidatoGrid,this);
             displayed = new TextBox[nCols, nRows];
 
             for (int i = 0; i < nCols; i++)
@@ -108,17 +108,18 @@ namespace Hidato_Solver_Gui_
 
         private void HidatoBoard_TextChanged(object sender, EventArgs e)
         {
+
             TextBox tb = (TextBox)sender;
             string s = tb.Text;
             // determine which row,col we are in
-            int nCol = (tb.Location.Y - TopMargin) / RowSpacing;
+
             int nRow = (tb.Location.X - LeftMargin) / ColumnSpacing;
+            int nCol = (tb.Location.Y - TopMargin) / RowSpacing;
 
             int data = 0;
             try
             {
                 data = int.Parse(s);
-                
               
             }
             catch (FormatException) { }
@@ -138,9 +139,9 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.Red;
                 tb.ForeColor = Color.Black;
 
-                ///Node의 Input은 풀기 전 초기 값만 들어갸야 함으로 풀이가 진행중인 동안에 TaxtBox안에 Taxt가 바뀌면 Input에 들어가면 안 되기 때문에 
-                ///풀이가 진행중인 경우에는 InputAt함수를 호출하지 않습니다.
-                if (!hidato_solver.IsProcess)
+                //Node의 Input은 풀기 전 초기 값만 들어갸야 하므로 풀이가 진행중인 동안에 TaxtBox안에 Taxt가 바뀌면 Input에 들어가면 안 되기 때문에 
+                //풀이가 진행중인 경우에는 InputAt함수를 호출하지 않습니다.
+                if (!Option.IsProcessing)
                 {
                     hidatoGrid.InputAt(nRow, nCol, data);
                 }
@@ -150,9 +151,9 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.Black;
                 tb.ForeColor = Color.White;
 
-                if (hidato_solver.IsProcess == false)
+                if (Option.IsProcessing == false)
                 {
-                    hidatoGrid.InputAt(nCol, nRow, data);
+                    hidatoGrid.InputAt(nRow, nCol, data);
                 }
 
             }
@@ -161,9 +162,9 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.LightGreen;
                 tb.ForeColor = Color.Black;
 
-                if (hidato_solver.IsProcess == false)
+                if (Option.IsProcessing == false)
                 {
-                    hidatoGrid.InputAt(nCol, nRow, data);
+                    hidatoGrid.InputAt(nRow, nCol, data);
                 }
 
             }
@@ -172,9 +173,9 @@ namespace Hidato_Solver_Gui_
                 tb.BackColor = Color.White;
                 tb.ForeColor = Color.Black;
 
-                if (hidato_solver.IsProcess == false)
+                if (Option.IsProcessing == false)
                 {
-                    hidatoGrid.InputAt(nCol, nRow, data);
+                    hidatoGrid.InputAt(nRow,nCol, data);
                 }
 
             }
@@ -240,7 +241,7 @@ namespace Hidato_Solver_Gui_
         private void buttonSolve_Click(object sender, EventArgs e)
         {
             //문제를 푸는데 성공하면
-            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.Startsolve(this)));
+            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.Startsolve()));
 
             task1.Start();
         }
@@ -258,7 +259,7 @@ namespace Hidato_Solver_Gui_
 
             if (success == true)
             {
-                //성공했다는 메세지 박스를 출력함C:\Users\석진 이\source\repos\Hidato Solver(Gui)\Hidato Solver(Gui)\Form1.cs
+                //성공했다는 메세지 박스를 출력함 C:\Users\석진 이\source\repos\Hidato Solver(Gui)\Hidato Solver(Gui)\Form1.cs
 
                 MessageBox.Show("Completed successfully. Time elapsed: " + (DateTime.Now - start).ToString());
             }
@@ -305,8 +306,7 @@ namespace Hidato_Solver_Gui_
 
         private void Hidato_Board_FormClosing(object sender, FormClosingEventArgs e)
         {
-            hidato_solver.cancel();
-
+            Option.SolveCancel = true;
         }
     }
 }

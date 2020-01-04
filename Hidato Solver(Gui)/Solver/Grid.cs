@@ -6,33 +6,39 @@ using System.Threading.Tasks;
 
 namespace hidato_solver
 {
+    // 누가 수업시간에 처묵처묵 해? -by tan kim
     enum Side { N = 0, NE, E, SE, S, SW, W, NW }
     class HidatoGrid
     {
-        private Node hard = null;
+        private Node head = null;
 
-        private int m_Rlength;
-        private int m_Clength;
+        private int m_Rows;
+        private int m_Cols;
 
         //값이 -1인 칸의 개수 즉 비활성화 된 칸의 개수
         //private int m_Disable;
         public int Disable;
 
-        public HidatoGrid(int Cols, int Rows)
+        /// <summary>
+        /// 그리드 생성자 주어진 행과 열(이건 레거시)
+        /// </summary>
+        /// <param name="Cols"></param>
+        /// <param name="Rows"></param>
+        public HidatoGrid(int Rows, int Cols)
         {
-            m_Clength = Cols;
-            m_Rlength = Rows;
-            GenerateGrid(Cols, Rows);
+            m_Cols = Cols;
+            m_Rows = Rows;
+            GenerateGrid(Rows, Cols);
         }
 
-        public int GridRlength
+        public int GridRows
         {
-            get { return m_Rlength; }
+            get { return m_Rows; }
         }
 
-        public int GridClength
+        public int GridCols
         {
-            get { return m_Clength; }
+            get { return m_Cols; }
         }
 
         public class Node
@@ -77,30 +83,23 @@ namespace hidato_solver
 
             }
 
-            public void EmptyMarker()
-            {
-                for (int i = 0; i < this.marker.SurchMarker.Length; i++)
-                {
-                    this.marker.SurchMarker[i] = false;
-                }
-            }
 
         }
 
-        public void GenerateGrid(int CLength, int RLength)
+        public void GenerateGrid(int Rows, int Cols)
         {
             int Rcount = 0; int Ccount = 0;
 
             //머리의 주소를 받는데 머리가 없으면 머리를 생성합니다.
-            if (hard == null)
+            if (head == null)
             {
-                hard = new Node();
+                head = new Node();
             }
 
-            Node horse = hard;
+            Node horse = head;
 
             //가로 폭 만큼 생성
-            while (RLength - 1 > Rcount)
+            while (Rows - 1 > Rcount)
             {
                 if (horse.E != null)
                 {
@@ -116,9 +115,9 @@ namespace hidato_solver
                 }
             }
 
-            while (CLength - 1 > Ccount)
+            while (Cols - 1 > Ccount)
             {
-                horse = hard;
+                horse = head;
 
                 while (horse.S != null)
                 {
@@ -126,7 +125,7 @@ namespace hidato_solver
                 }
 
                 Rcount = 0;
-                while (RLength > Rcount)
+                while (Rows > Rcount)
                 {
 
                     Node temp1 = new Node();
@@ -182,10 +181,16 @@ namespace hidato_solver
             }
         }
 
+        /// <summary>
+        /// 주어진 열과 행의 노드를 반환
+        /// </summary>
+        /// <param name="Row">열</param>
+        /// <param name="Col">행</param>
+        /// <returns></returns>
         public Node GetNodeAt(int Row, int Col)
         {
             int count = 0;
-            Node horse = hard;
+            Node horse = head;
 
             while (Col != count)
             {
@@ -199,31 +204,41 @@ namespace hidato_solver
                 horse = horse.E;
                 count++;
             }
+
             return horse;
         }
 
-        public void InputAt(int Yindex, int Xindex, int data)
+        public void InputAt(int Row, int Col, int data)
         {
-            HidatoGrid.Node taget = GetNodeAt(Yindex, Xindex);
+            HidatoGrid.Node taget = GetNodeAt(Row, Col);
             taget.Input = data;
         }
 
-        public int GetDataAt(int Yindex, int Xindex)
+        public int GetDataAt(int Row, int Col)
         {
-            Node taget = GetNodeAt(Yindex, Xindex);
+            Node taget = GetNodeAt(Row, Col);
             int TagetData = taget.Input + taget.WorkSapce;
             return TagetData;
+        }
+
+        /// <summary>
+        /// 모든 노드를 1차원 리스트로 묶어 반환
+        /// </summary>
+        /// <returns></returns>
+        public Node[] getAllNodes()
+        {
+            Node[] nodesArr= new Node[GridCols * GridRows - Disable];
         }
 
         public int DisableBoxesCount()
         {
             Disable = 0;
             int disableCount = 0;
-            for (int i = 0; i < GridClength; i++)
+            for (int i = 0; i < GridCols; i++)
             {
-                for (int j = 0; j < GridRlength; j++)
+                for (int j = 0; j < GridRows; j++)
                 {
-                    if (GetDataAt(i, j) == 0)
+                    if (GetDataAt(j, i) == 0)
                     {
                         disableCount++;
                     }
@@ -234,6 +249,20 @@ namespace hidato_solver
             return disableCount;
         }
 
+        public void show()
+        {
+            for (int i = 0; i < GridCols; i++)
+            {
+                for (int j = 0; j < GridRows; j++)
+                {
+                    Console.Write(GetDataAt(j, i));
+                    Console.Write(" ");
+
+                }
+                Console.WriteLine("");
+            }
+
+        }
     }
 
 
