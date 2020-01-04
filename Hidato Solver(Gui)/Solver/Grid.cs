@@ -17,7 +17,7 @@ namespace hidato_solver
 
         //값이 -1인 칸의 개수 즉 비활성화 된 칸의 개수
         //private int m_Disable;
-        public int Disable;
+        private int m_Disable;
 
         /// <summary>
         /// 그리드 생성자 주어진 행과 열(이건 레거시)
@@ -40,6 +40,8 @@ namespace hidato_solver
         {
             get { return m_Cols; }
         }
+
+        public int Disable { get => DisableBoxesCount(); }
 
         public class Node
         {
@@ -228,11 +230,12 @@ namespace hidato_solver
         public Node[] getAllNodes()
         {
             Node[] nodesArr= new Node[GridCols * GridRows - Disable];
+            return nodesArr;
         }
 
         public int DisableBoxesCount()
         {
-            Disable = 0;
+            m_Disable = 0;
             int disableCount = 0;
             for (int i = 0; i < GridCols; i++)
             {
@@ -245,7 +248,7 @@ namespace hidato_solver
                 }
             }
 
-            Disable = disableCount;
+            m_Disable = disableCount;
             return disableCount;
         }
 

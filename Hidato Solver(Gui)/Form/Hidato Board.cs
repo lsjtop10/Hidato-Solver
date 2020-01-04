@@ -122,17 +122,8 @@ namespace Hidato_Solver_Gui_
                 data = int.Parse(s);
               
             }
-            catch (FormatException) { }
-            catch (OverflowException) { }
-
-            if (data == -1)
-            {
-                hidatoGrid.Disable++;
-            }
-            else if(hidatoGrid.GetDataAt(nRow, nCol) == -1 && data != -1)
-            {
-                hidatoGrid.Disable--;
-            }
+            catch (FormatException) {}
+            catch (OverflowException) {}
 
             if (data > hidatoGrid.GridCols * hidatoGrid.GridRows- hidatoGrid.Disable)
             {
