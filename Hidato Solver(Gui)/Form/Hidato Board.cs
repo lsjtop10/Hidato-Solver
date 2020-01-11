@@ -31,14 +31,14 @@ namespace Hidato_Solver_Gui_
         //static public int processWaitTime = 0;
 
         //텍스트 박스 상수
-        private const int ColumnSpacing = 40; //열 간격
-        private const int RowSpacing = 30; //행 간격
-        private const int ColumnWidth = 35; //열 너비
-        private const int RowHeight = 25; //행 높이
-        private const int LeftMargin = 12; //왼쪽 여백
-        private const int TopMargin = 12; //위쪽 여잭
-        private const int RightMargin = 12; //오른쪽 여백
-        private const int BottomMargin = 60; //아랫쪽 여백
+        private const int ColumnSpacing = 40;
+        private const int RowSpacing = 30;
+        private const int ColumnWidth = 35;
+        private const int RowHeight = 25;
+        private const int LeftMargin = 12;
+        private const int TopMargin = 12;
+        private const int RightMargin = 12;
+        private const int BottomMargin = 60;
 
         public Hidato_Board(int nCols, int nRows)
         {
@@ -73,36 +73,29 @@ namespace Hidato_Solver_Gui_
             UpdateTextBoxes();
         }
 
-        //public Hidato_Board(OptionData option)
-        //{
-            
-        //}
-
-        private void InitializeArrays(int nCols, int nRows)
+        private void InitializeArrays(int nRows, int nCols)
         {
             hidatoGrid = new HidatoGrid(nRows, nCols);
-            hidato_solver = new HidatoSolverInterface(hidatoGrid,this);
-            displayed = new TextBox[nCols, nRows];
+            displayed = new TextBox[nRows, nCols];
+            hidato_solver = new HidatoSolverInterface(hidatoGrid, this);
 
             for (int i = 0; i < nCols; i++)
             {
                 for (int j = 0; j < nRows; j++)
                 {
-                    displayed[i, j] = new TextBox
-                    {
-                        Parent = this,
-                        Location = new Point(j * ColumnSpacing + LeftMargin, i * RowSpacing + TopMargin),
-                        Size = new Size(ColumnWidth, RowHeight),
-                        Visible = true
-                    };
-                    displayed[i, j].TextChanged += new EventHandler(HidatoBoard_TextChanged);
+                    displayed[j, i] = new TextBox();
+                    displayed[j, i].Parent = this;
+                    displayed[j, i].Location = new Point(i * ColumnSpacing + LeftMargin, j * RowSpacing + TopMargin);
+                    displayed[j, i].Size = new Size(ColumnWidth, RowHeight);
+                    displayed[j, i].Visible = true;
+                    displayed[j, i].TextChanged += new EventHandler(HidatoBoard_TextChanged);
                 }
             }
 
-            this.Size = new Size(nRows * ColumnSpacing + LeftMargin + RightMargin, nCols * RowSpacing + TopMargin + BottomMargin);
+            this.Size = new Size(nCols * ColumnSpacing + LeftMargin + RightMargin, nRows * RowSpacing + TopMargin + BottomMargin + button1.Height);
 
             int xPosSolve = (this.Size.Width - buttonSolve.Size.Width - button1.Size.Width - ColumnSpacing) / 2;
-            buttonSolve.Location = new Point(xPosSolve, nCols * RowSpacing + TopMargin);
+            buttonSolve.Location = new Point(xPosSolve, nRows * RowSpacing + TopMargin);
             button1.Location = new Point(xPosSolve + buttonSolve.Size.Width + ColumnSpacing, nRows * RowSpacing + TopMargin);
         }
 
@@ -114,7 +107,7 @@ namespace Hidato_Solver_Gui_
             // determine which row,col we are in
 
             int nRow = (tb.Location.X - LeftMargin) / ColumnSpacing;
-            int nCol = (tb.Location.Y - TopMargin) / RowSpacing;
+            int nCol = (tb.Location.Y - TopMargin + 2) / RowSpacing;
 
             int data = 0;
             try
@@ -173,8 +166,6 @@ namespace Hidato_Solver_Gui_
             //hidatoGrid.show();
         }
 
-
-
         private void Hidato_Bord_Load(object sender, EventArgs e)
         {
 
@@ -182,7 +173,10 @@ namespace Hidato_Solver_Gui_
 
         public void UpdateTextBoxes()
         {
+#if DEBUG
+            hidatoGrid.show();
 
+#endif
             if (this.InvokeRequired)
             {
                 try
@@ -231,10 +225,12 @@ namespace Hidato_Solver_Gui_
         public bool success = false;
         private void buttonSolve_Click(object sender, EventArgs e)
         {
+            SetTaxtBoxesIsEditble(false);
             //문제를 푸는데 성공하면
-            Thread task1 = new Thread(new ThreadStart(() => hidato_solver.Startsolve()));
+            hidato_solver.Startsolve();
 
-            task1.Start();
+            SetTaxtBoxesIsEditble(true);
+
         }
 
         /// <summary>
@@ -292,6 +288,21 @@ namespace Hidato_Solver_Gui_
                 stream.Close();
 
                 ShowSFdialog(true, dtStart);
+            }
+        }
+
+        /// <summary>
+        /// 보드의 텍스트 박스의 수정 가능/불가능 여부를 받아 활성/비활성화함
+        /// </summary>
+        /// <param name="editble">텍스트 박스들을 수정 가능한 상태로 만들지(True면 수정 가능)</param>
+        private void SetTaxtBoxesIsEditble(bool editble)
+        {
+            for(int i = 0; i < hidatoGrid.GridCols; i++)
+            {
+                for(int j = 0; j < hidatoGrid.GridRows; j++)
+                {
+                    displayed[j, i].Enabled = editble;
+                }
             }
         }
 

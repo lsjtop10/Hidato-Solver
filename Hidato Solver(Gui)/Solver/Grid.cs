@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace hidato_solver
 {
-    // 누가 수업시간에 처묵처묵 해? -by tan kim
     enum Side { N = 0, NE, E, SE, S, SW, W, NW }
     class HidatoGrid
     {
@@ -43,12 +42,22 @@ namespace hidato_solver
 
         public int Disable { get => DisableBoxesCount(); }
 
+        public int HintCount { get => m_HintCount(); }
         public class Node
         {
             //-1을 unsed라는 이름으로 비활성화된 칸을 나타내는 상수로 정의합니다.
             public const int unused = -1;
 
-            public Node[] Abutter = new Node[8];
+            public Node[] Neighbor = new Node[8];
+
+            public Node N { get { return this.Neighbor[(int)Side.N]; } set { this.Neighbor[(int)Side.N] = value; } }
+            public Node NE { get { return this.Neighbor[(int)Side.NE]; } set { this.Neighbor[(int)Side.NE] = value; } }
+            public Node E { get { return this.Neighbor[(int)Side.E]; } set { this.Neighbor[(int)Side.E] = value; } }
+            public Node SE { get { return this.Neighbor[(int)Side.SE]; } set { this.Neighbor[(int)Side.SE] = value; } }
+            public Node S { get { return this.Neighbor[(int)Side.S]; } set { this.Neighbor[(int)Side.S] = value; } }
+            public Node SW { get { return this.Neighbor[(int)Side.SW]; } set { this.Neighbor[(int)Side.SW] = value; } }
+            public Node W { get { return this.Neighbor[(int)Side.W]; } set { this.Neighbor[(int)Side.W] = value; } }
+            public Node NW{ get { return this.Neighbor[(int)Side.NW]; } set { this.Neighbor[(int)Side.NW] = value; } }
 
             public SurchMarking marker;
 
@@ -60,26 +69,39 @@ namespace hidato_solver
                 get { return Input + WorkSapce; }
             }
 
-            public bool[] insertMarking = new bool[8];
-
             public Node()
             {
-                for(int i = 0; i < Abutter.Length; i++)
-                {
-                    Abutter[i] = null;
-                }
-
-                for (int i = 0; i < insertMarking.Length; i++)
-                {
-                    insertMarking[i] = false;
-                }
-
+                this.NE = null;
+                this.E = null;
+                this.SE = null;
+                this.S = null;
+                this.SE = null;
+                this.W = null;
+                this.NW = null;
             }
 
+            /// <summary>
+            /// 이웃한 노드의 참조를 1차원 배열로 반환
+            /// </summary>
+            /// <returns></returns>
+            public Node[] GetNeighborNods()
+            {
+                Node[] nodes = new Node[8];
 
+                nodes[(int)Side.N] = this.N;
+                nodes[(int)Side.NE] = this.NE;
+                nodes[(int)Side.E] = this.E;
+                nodes[(int)Side.SE] = this.SE;
+                nodes[(int)Side.S] = this.S;
+                nodes[(int)Side.SW] = this.SW;
+                nodes[(int)Side.W] = this.W;
+                nodes[(int)Side.NW] = this.NW;
+
+                return nodes;
+            }
         }
 
-        public void GenerateGrid(int Rows, int Cols)
+        public void GenerateGrid(int CLength, int RLength)
         {
             int Rcount = 0; int Ccount = 0;
 
@@ -92,82 +114,78 @@ namespace hidato_solver
             Node horse = head;
 
             //가로 폭 만큼 생성
-            while (Rows - 1 > Rcount)
+            while (RLength - 1 > Rcount)
             {
-                if (horse.Abutter[(int)Side.E] != null)
+                if (horse.E != null)
                 {
-                    horse = horse.Abutter[(int)Side.E];
+                    horse = horse.E;
                 }
                 else
                 {
                     Node temp = new Node();
-                    horse.Abutter[(int)Side.E] = temp;
-                    horse.Abutter[(int)Side.W] = horse;
+                    horse.E = temp;
+                    temp.W = horse;
                     Rcount++;
                     temp = null;
                 }
             }
 
-            while (Cols - 1 > Ccount)
+            while (CLength - 1 > Ccount)
             {
                 horse = head;
 
-                while (horse.Abutter[(int)Side.S] != null)
+                while (horse.S != null)
                 {
-                    horse = horse.Abutter[(int)Side.S];
+                    horse = horse.S;
                 }
 
                 Rcount = 0;
-                while (Rows > Rcount)
+                while (RLength > Rcount)
                 {
 
                     Node temp1 = new Node();
-                    horse.Abutter[(int)Side.S] = temp1;
-                    temp1.Abutter[(int)Side.N] = horse;
+                    horse.S = temp1;
+                    temp1.N = horse;
 
-                    //horse.S.W
-                    if (horse.Abutter[(int)Side.S].Abutter[(int)Side.W] == null)
+                    if (horse.S.W == null)
                     {
-                        
-                        if (horse.Abutter[(int)Side.W] == null)
+                        if (horse.W == null)
                         {
-                            //s.w
-                            horse.Abutter[(int)Side.S].Abutter[(int)Side.W] = null;
+                            horse.S.W = null;
                         }
                         else
                         {
-                            //s.w , w.s
-                            horse.Abutter[(int)Side.S].Abutter[(int)Side.W]= horse.Abutter[(int)Side.W].Abutter[(int)Side.S];
-                            horse.Abutter[(int)Side.W].Abutter[(int)Side.S].Abutter[(int)Side.E] = horse.Abutter[(int)Side.S];
+                            horse.S.W = horse.W.S;
+                            horse.W.S.E = horse.S;
                         }
                     }
 
-                    if (horse.Abutter[(int)Side.S].Abutter[(int)Side.NW] == null)
+                    if (horse.S.NW == null)
                     {
-                        if (horse.Abutter[(int)Side.W] == null)
+                        if (horse.W == null)
                         {
-                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NW] = null;
+                            horse.S.NW = null;
                         }
                         else
                         {
-                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NW] = horse.Abutter[(int)Side.W];
-                            horse.Abutter[(int)Side.W].Abutter[(int)Side.SE] = horse.Abutter[(int)Side.S];
+                            horse.S.NW = horse.W;
+                            horse.W.SE = horse.S;
                         }
                     }
 
-                    if (horse.Abutter[(int)Side.S].Abutter[(int)Side.NE] == null)
+                    if (horse.S.NE == null)
                     {
-                        if (horse.Abutter[(int)Side.E] == null)
+                        if (horse.E == null)
                         {
-                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NE] = null;
+                            horse.S.NE = null;
                         }
                         else
                         {
-                            horse.Abutter[(int)Side.S].Abutter[(int)Side.NE] = horse.Abutter[(int)Side.E];
-                            horse.Abutter[(int)Side.E].Abutter[(int)Side.SW]= horse.Abutter[(int)Side.S];
+                            horse.S.NE = horse.E;
+                            horse.E.SW = horse.S;
                         }
                     }
-                    horse = horse.Abutter[(int)Side.E];
+                    horse = horse.E;
                     Rcount++;
                     temp1 = null;
 
@@ -178,30 +196,23 @@ namespace hidato_solver
             }
         }
 
-        /// <summary>
-        /// 주어진 열과 행의 노드를 반환
-        /// </summary>
-        /// <param name="Row">열</param>
-        /// <param name="Col">행</param>
-        /// <returns></returns>
         public Node GetNodeAt(int Row, int Col)
         {
             int count = 0;
             Node horse = head;
 
-            while (Col != count)
+            while (Col!= count)
             {
-                horse = horse.Abutter[(int)Side.S];
+                horse = horse.S;
                 count++;
             }
 
             count = 0;
             while (Row != count)
             {
-                horse = horse.Abutter[(int)Side.E];
+                horse = horse.E;
                 count++;
             }
-
             return horse;
         }
 
@@ -222,29 +233,63 @@ namespace hidato_solver
         /// 모든 노드를 1차원 리스트로 묶어 반환
         /// </summary>
         /// <returns></returns>
-        public Node[] getAllNodes()
-        {
-            Node[] nodesArr= new Node[GridCols * GridRows - Disable];
-            return nodesArr;
-        }
-
-        public int DisableBoxesCount()
+        private int DisableBoxesCount()
         {
             m_Disable = 0;
             int disableCount = 0;
-            for (int i = 0; i < GridCols; i++)
+            Node[] nodes = SerializeGrid();
+            for (int i = 0; i < nodes.Length; i++)
             {
-                for (int j = 0; j < GridRows; j++)
+                if (nodes[i].Data == -1)
                 {
-                    if (GetDataAt(j, i) == -1)
-                    {
-                        disableCount++;
-                    }
+                    disableCount++;
                 }
+
             }
 
             m_Disable = disableCount;
             return disableCount;
+        }
+
+        public Node[] SerializeGrid()
+        {
+            Node[] nodesArr= new Node[GridCols * GridRows];
+
+            int indexCount = 0;
+
+            //가로 방향으로 운동
+            Node RowHorse = head; 
+            //세로 방향으로 운동
+            Node ColHorse = head;
+
+            for (int i = 0; i < GridCols; i++)
+            {
+
+                for (int j = 0; j < GridRows; j++)
+                {
+                    nodesArr[indexCount] = RowHorse;
+                    indexCount++;
+                    RowHorse = RowHorse.E;
+                }
+
+                ColHorse = ColHorse.S;
+                RowHorse = ColHorse;
+            }
+
+            return nodesArr;
+        }
+        private int m_HintCount()
+        {
+            int hintcount = 0;
+            Node[] nodes = SerializeGrid();
+            for(int i = 0; i < nodes.Length; i++)
+            {
+                if(nodes[i].Input > 0)
+                {
+                    hintcount++;
+                }
+            }
+            return hintcount;
         }
 
         public void show()
@@ -261,6 +306,7 @@ namespace hidato_solver
             }
 
         }
+
     }
 
 
