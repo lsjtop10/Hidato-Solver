@@ -488,6 +488,7 @@ namespace hidato_solver
             int nval = 0;
 
             for (int i = 0; i < m_hidatoGrid.GridClength; i++)
+            {
                 for (int j = 0; j < m_hidatoGrid.GridRlength; j++)
                 {
                     //현재 위치의 값
@@ -500,6 +501,7 @@ namespace hidato_solver
                         maxval = nval;
                     }
                 }
+            }
 
             return maxval;
 
